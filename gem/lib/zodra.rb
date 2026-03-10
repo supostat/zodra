@@ -8,6 +8,14 @@ module Zodra
   class ConfigurationError < Error; end
 
   class << self
+    def configuration
+      @configuration ||= Configuration.new
+    end
+
+    def configure
+      yield configuration
+    end
+
     def type(name, &block)
       definition = TypeRegistry.global.register(name, kind: :object)
       TypeBuilder.new(definition).instance_eval(&block) if block
@@ -29,10 +37,14 @@ module Zodra
     def setup_autoload
       @loader = Zeitwerk::Loader.for_gem.tap do |loader|
         loader.inflector.inflect("dsl" => "DSL")
+        loader.ignore("#{__dir__}/zodra/tasks")
+        loader.ignore("#{__dir__}/zodra/railtie.rb")
         loader.setup
       end
     end
   end
 
   setup_autoload
+
+  require "zodra/railtie" if defined?(Rails::Railtie)
 end

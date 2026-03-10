@@ -90,6 +90,20 @@ RSpec.describe "Zodra DSL" do
     end
   end
 
+  describe ".configure" do
+    after { Zodra.instance_variable_set(:@configuration, nil) }
+
+    it "yields configuration block" do
+      Zodra.configure do |c|
+        c.output_path = "frontend/types"
+        c.zod_import = "zod/v4"
+      end
+
+      expect(Zodra.configuration.output_path).to eq("frontend/types")
+      expect(Zodra.configuration.zod_import).to eq("zod/v4")
+    end
+  end
+
   describe ".enum" do
     it "registers an enum type" do
       Zodra.enum :status, values: %i[draft sent paid]
