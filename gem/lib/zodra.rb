@@ -37,6 +37,7 @@ module Zodra
     def setup_autoload
       @loader = Zeitwerk::Loader.for_gem.tap do |loader|
         loader.inflector.inflect("dsl" => "DSL")
+        loader.ignore("#{__dir__}/generators")
         loader.ignore("#{__dir__}/zodra/tasks")
         loader.ignore("#{__dir__}/zodra/railtie.rb")
         loader.setup

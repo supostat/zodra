@@ -1,0 +1,12 @@
+# frozen_string_literal: true
+
+Zodra.configure do |config|
+  # Directory where generated TypeScript/Zod files are written.
+  # config.output_path = "app/javascript/types"
+
+  # Key format for exported properties: :camel, :pascal, or :keep.
+  # config.key_format = :camel
+
+  # Zod import path used in generated schemas.
+  # config.zod_import = "zod"
+end
