@@ -32,6 +32,12 @@ module Zodra
       definition
     end
 
+    def contract(name, &block)
+      contract = ContractRegistry.global.register(name)
+      ContractBuilder.new(contract).instance_eval(&block) if block
+      contract
+    end
+
     private
 
     def setup_autoload
