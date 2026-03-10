@@ -1,0 +1,81 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  rubocop:
+    name: Lint (Ruby)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: gem
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: "3.4"
+          bundler-cache: true
+          working-directory: gem
+      - run: bundle exec rubocop --parallel
+
+  rspec:
+    name: Test (Ruby ${{ matrix.ruby }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        ruby: ["3.2", "3.3", "3.4"]
+    defaults:
+      run:
+        working-directory: gem
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: ${{ matrix.ruby }}
+          bundler-cache: true
+          working-directory: gem
+      - run: bundle exec rspec
+
+  js:
+    name: Test (JS)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: js
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+          cache-dependency-path: js/pnpm-lock.yaml
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm typecheck
+      - run: pnpm test
+
+  all-green:
+    name: All Green
+    if: always()
+    needs: [rubocop, rspec, js]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check results
+        run: |
+          if [[ "${{ needs.rubocop.result }}" != "success" ]] ||
+             [[ "${{ needs.rspec.result }}" != "success" ]] ||
+             [[ "${{ needs.js.result }}" != "success" ]]; then
+            echo "Some jobs failed"
+            exit 1
+          fi

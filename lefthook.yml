@@ -1,0 +1,21 @@
+pre-commit:
+  parallel: true
+  commands:
+    rubocop:
+      glob: "*.rb"
+      root: gem/
+      run: bundle exec rubocop --parallel {staged_files}
+    eslint:
+      glob: "*.{ts,tsx,js}"
+      root: js/
+      run: pnpm lint {staged_files}
+
+pre-push:
+  parallel: true
+  commands:
+    rspec:
+      root: gem/
+      run: bundle exec rspec
+    vitest:
+      root: js/
+      run: pnpm test
