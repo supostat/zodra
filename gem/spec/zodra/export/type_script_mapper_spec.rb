@@ -111,6 +111,62 @@ RSpec.describe Zodra::Export::TypeScriptMapper do
     end
   end
 
+  describe "#map_contract" do
+    it "generates params interfaces with contract-scoped names" do
+      contract = build_contract(:invoices) do |c|
+        action = c.add_action(:create)
+        action.http_method = :post
+        action.path = "/invoices"
+        action.response = :invoice
+        Zodra::TypeBuilder.new(action.params).instance_eval do
+          string :number, min: 1
+          decimal :amount, min: 0
+        end
+      end
+
+      result = mapper.map_contract(contract)
+
+      expect(result).to include("export interface CreateInvoicesParams {")
+      expect(result).to include("  number: string;")
+      expect(result).to include("  amount: number;")
+    end
+
+    it "generates contract descriptor interface with response" do
+      contract = build_contract(:invoices) do |c|
+        action = c.add_action(:create)
+        action.http_method = :post
+        action.path = "/invoices"
+        action.response = :invoice
+      end
+
+      result = mapper.map_contract(contract)
+
+      expect(result).to include("export interface InvoicesContract {")
+      expect(result).to include("create: { method: 'POST'; path: '/invoices'; params: CreateInvoicesParams; response: Invoice };")
+    end
+
+    it "omits response when not set" do
+      contract = build_contract(:search) do |c|
+        action = c.add_action(:query)
+        action.http_method = :get
+        action.path = "/search"
+      end
+
+      result = mapper.map_contract(contract)
+
+      expect(result).to include("query: { method: 'GET'; path: '/search'; params: QuerySearchParams };")
+      expect(result).not_to include("response:")
+    end
+
+    it "generates empty interface for contract without actions" do
+      contract = Zodra::Contract.new(name: :empty)
+
+      result = mapper.map_contract(contract)
+
+      expect(result).to eq("export interface EmptyContract {}")
+    end
+  end
+
   private
 
   def build_object(name, **attrs)
@@ -119,5 +175,11 @@ RSpec.describe Zodra::Export::TypeScriptMapper do
       definition.add_attribute(attr_name, **options)
     end
     definition
+  end
+
+  def build_contract(name)
+    contract = Zodra::Contract.new(name:)
+    yield contract if block_given?
+    contract
   end
 end

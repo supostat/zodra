@@ -1,7 +1,10 @@
 # frozen_string_literal: true
 
 RSpec.describe "Export pipeline", :acceptance do
-  before { Zodra::TypeRegistry.global.clear! }
+  before do
+    Zodra::TypeRegistry.global.clear!
+    Zodra::ContractRegistry.global.clear!
+  end
 
   describe "TypeScript export" do
     it "generates interface from type DSL" do
@@ -176,6 +179,95 @@ RSpec.describe "Export pipeline", :acceptance do
 
       expect(result).to include("firstName: string;")
       expect(result).to include("lastName: string;")
+    end
+  end
+
+  describe "contract export" do
+    before do
+      Zodra.type :invoice do
+        uuid :id
+        string :number
+        decimal :amount
+      end
+
+      Zodra.contract :invoices do
+        action :create do
+          post "/invoices"
+          params do
+            string :number, min: 1
+            decimal :amount, min: 0
+          end
+          response :invoice
+        end
+
+        action :show do
+          get "/invoices/:id"
+          params do
+            uuid :id
+          end
+          response :invoice
+        end
+      end
+    end
+
+    it "exports contract params as Zod schemas" do
+      result = Zodra::Export.generate(:zod)
+
+      expect(result).to include("export const CreateInvoicesParamsSchema = z.object({")
+      expect(result).to include("number: z.string().min(1)")
+      expect(result).to include("amount: z.number().min(0)")
+      expect(result).to include("export const ShowInvoicesParamsSchema = z.object({")
+      expect(result).to include("id: z.string().uuid()")
+    end
+
+    it "exports contract descriptor as Zod" do
+      result = Zodra::Export.generate(:zod)
+
+      expect(result).to include("export const InvoicesContract = {")
+      expect(result).to include("create: { method: 'POST' as const, path: '/invoices' as const, params: CreateInvoicesParamsSchema, response: InvoiceSchema }")
+      expect(result).to include("show: { method: 'GET' as const, path: '/invoices/:id' as const, params: ShowInvoicesParamsSchema, response: InvoiceSchema }")
+    end
+
+    it "exports contract params as TypeScript interfaces" do
+      result = Zodra::Export.generate(:typescript)
+
+      expect(result).to include("export interface CreateInvoicesParams {")
+      expect(result).to include("number: string;")
+      expect(result).to include("export interface ShowInvoicesParams {")
+      expect(result).to include("id: string;")
+    end
+
+    it "exports contract descriptor as TypeScript interface" do
+      result = Zodra::Export.generate(:typescript)
+
+      expect(result).to include("export interface InvoicesContract {")
+      expect(result).to include("create: { method: 'POST'; path: '/invoices'; params: CreateInvoicesParams; response: Invoice }")
+      expect(result).to include("show: { method: 'GET'; path: '/invoices/:id'; params: ShowInvoicesParams; response: Invoice }")
+    end
+
+    it "handles action without response in descriptor" do
+      Zodra.contract :search do
+        action :query do
+          get "/search"
+          params do
+            string :q, min: 1
+          end
+        end
+      end
+
+      result = Zodra::Export.generate(:zod)
+
+      expect(result).to include("export const QuerySearchParamsSchema = z.object({")
+      expect(result).to include("query: { method: 'GET' as const, path: '/search' as const, params: QuerySearchParamsSchema }")
+      expect(result).not_to include("query: { method: 'GET' as const, path: '/search' as const, params: QuerySearchParamsSchema, response:")
+    end
+
+    it "handles empty contract" do
+      Zodra.contract :empty_resource
+
+      result = Zodra::Export.generate(:zod)
+
+      expect(result).to include("export const EmptyResourceContract = {} as const;")
     end
   end
 end

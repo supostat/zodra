@@ -31,6 +31,16 @@ module Zodra
         definitions.map { |definition| map_definition(definition) }.join("\n\n")
       end
 
+      def map_contract(contract)
+        params_output = map_contract_params(contract)
+        descriptor_output = map_contract_descriptor(contract)
+        [params_output, descriptor_output].compact.reject(&:empty?).join("\n\n")
+      end
+
+      def map_contracts(contracts)
+        contracts.map { |contract| map_contract(contract) }.join("\n\n")
+      end
+
       private
 
       def map_object(definition)
@@ -82,6 +92,29 @@ module Zodra
         when :pascal then pascal_case_string(key_string)
         else key_string
         end
+      end
+
+      def map_contract_params(contract)
+        contract.actions.values.map do |action|
+          params_name = :"#{action.name}_#{contract.name}_params"
+          renamed = Definition.new(name: params_name, kind: :object)
+          action.params.attributes.each { |key, attr| renamed.attributes[key] = attr }
+          map_object(renamed)
+        end.join("\n\n")
+      end
+
+      def map_contract_descriptor(contract)
+        name = pascal_case(contract.name)
+        return "export interface #{name}Contract {}" if contract.actions.empty?
+
+        entries = contract.actions.values.map do |action|
+          params_type = "#{pascal_case(action.name)}#{name}Params"
+          parts = ["method: '#{action.http_method.to_s.upcase}'", "path: '#{action.path}'", "params: #{params_type}"]
+          parts << "response: #{pascal_case(action.response)}" if action.response
+          "  #{action.name}: { #{parts.join('; ')} };"
+        end
+
+        "export interface #{name}Contract {\n#{entries.join("\n")}\n}"
       end
 
       def pascal_case(name)

@@ -13,10 +13,13 @@ module Zodra
       end
 
       mapper = mapper_class.new(key_format:)
-      definitions = TypeRegistry.global.to_a
+      contracts = ContractRegistry.global.to_a
 
-      header = format == :zod ? "import { z } from '#{zod_import}';\n\n" : ""
-      header + mapper.map_definitions(definitions)
+      parts = []
+      parts << "import { z } from '#{zod_import}';" if format == :zod
+      parts << mapper.map_definitions(TypeRegistry.global.to_a)
+      parts << mapper.map_contracts(contracts) unless contracts.empty?
+      parts.reject(&:empty?).join("\n\n")
     end
   end
 end
