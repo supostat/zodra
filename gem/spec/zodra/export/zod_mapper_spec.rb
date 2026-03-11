@@ -61,12 +61,12 @@ RSpec.describe Zodra::Export::ZodMapper do
       expect(result).to include("bio: z.string().nullable()")
     end
 
-    it "maps uuid to z.string().uuid()" do
+    it "maps uuid to z.uuid()" do
       definition = build_object(:entity, id: { type: :uuid })
 
       result = mapper.map_definition(definition)
 
-      expect(result).to include("id: z.string().uuid()")
+      expect(result).to include("id: z.uuid()")
     end
 
     it "maps reference to schema name" do

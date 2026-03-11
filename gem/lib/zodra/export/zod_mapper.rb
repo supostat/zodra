@@ -9,9 +9,9 @@ module Zodra
         decimal: "z.number()",
         number: "z.number()",
         boolean: "z.boolean()",
-        datetime: "z.string().datetime()",
-        date: "z.string().date()",
-        uuid: "z.string().uuid()",
+        datetime: "z.iso.datetime()",
+        date: "z.iso.date()",
+        uuid: "z.uuid()",
         binary: "z.string()"
       }.freeze
 

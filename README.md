@@ -195,7 +195,7 @@ export interface Product {
 import { z } from 'zod';
 
 export const ProductSchema = z.object({
-  id: z.string().uuid(),
+  id: z.uuid(),
   name: z.string(),
   sku: z.string(),
   price: z.number(),
@@ -214,9 +214,9 @@ export const ProductSchema = z.object({
 | `integer`  | `number`  | `z.number().int()`     |
 | `decimal`  | `number`  | `z.number()`           |
 | `boolean`  | `boolean` | `z.boolean()`          |
-| `uuid`     | `string`  | `z.string().uuid()`    |
-| `date`     | `string`  | `z.string()`           |
-| `datetime` | `string`  | `z.string()`           |
+| `uuid`     | `string`  | `z.uuid()`             |
+| `date`     | `string`  | `z.iso.date()`         |
+| `datetime` | `string`  | `z.iso.datetime()`     |
 
 ### Modifiers
 

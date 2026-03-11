@@ -5,13 +5,13 @@ import { ZodraClientError, ZodraValidationError } from "../src/errors";
 import type { TransportFn } from "../src/types";
 
 const ProductSchema = z.object({
-  id: z.string().uuid(),
+  id: z.uuid(),
   name: z.string(),
   price: z.number(),
 });
 
 const ShowProductsParamsSchema = z.object({
-  id: z.string().uuid(),
+  id: z.uuid(),
 });
 
 const CreateProductsParamsSchema = z.object({

@@ -157,8 +157,8 @@ RSpec.describe "Custom scalar types" do
     it "exports Zod with base type mapping" do
       output = Zodra::Export.generate(:zod, key_format: :keep)
 
-      expect(output).to include("start_date: z.string().date(),")
-      expect(output).to include("end_date: z.string().date().optional(),")
+      expect(output).to include("start_date: z.iso.date(),")
+      expect(output).to include("end_date: z.iso.date().optional(),")
     end
   end
 end
