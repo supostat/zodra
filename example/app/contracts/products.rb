@@ -16,7 +16,7 @@ Zodra.contract :products do
     params do
       string :name, min: 1
       string :sku, min: 1
-      decimal :price, min: 0
+      money :price, min: 0
       integer :stock, min: 0
       boolean :published, default: false
     end

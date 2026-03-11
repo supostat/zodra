@@ -4,7 +4,7 @@ Zodra.type :product do
   uuid :id
   string :name
   string :sku
-  decimal :price
+  money :price
   integer :stock
   boolean :published
 end
