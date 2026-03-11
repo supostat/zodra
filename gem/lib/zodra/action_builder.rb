@@ -19,5 +19,9 @@ module Zodra
         @action.response_type = type_name.to_sym
       end
     end
+
+    def error(code, status:)
+      @action.add_error(code, status:)
+    end
   end
 end

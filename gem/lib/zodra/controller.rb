@@ -24,6 +24,19 @@ module Zodra
       def zodra_contract_name
         @zodra_contract_name
       end
+
+      def zodra_rescue(action_name, exception_class, as:)
+        @zodra_rescue_mappings ||= []
+        @zodra_rescue_mappings << { action_name: action_name.to_sym, exception_class:, code: as.to_sym }
+
+        rescue_from exception_class do |exception|
+          handle_zodra_business_error(exception)
+        end
+      end
+
+      def zodra_rescue_mappings
+        @zodra_rescue_mappings || []
+      end
     end
 
     private
@@ -71,6 +84,21 @@ module Zodra
     def serialize_response(object, schema)
       key_format = Zodra.configuration.key_format
       ResponseSerializer.call(object, schema, key_format:, type_resolver: zodra_contract)
+    end
+
+    def handle_zodra_business_error(exception)
+      mapping = self.class.zodra_rescue_mappings.find { |m|
+        m[:action_name] == action_name.to_sym && exception.is_a?(m[:exception_class])
+      }
+
+      unless mapping
+        raise exception
+      end
+
+      error_definition = zodra_action.find_error(mapping[:code])
+      status = error_definition ? error_definition[:status] : :internal_server_error
+
+      render json: { error: { code: mapping[:code].to_s, message: exception.message } }, status:
     end
 
     def normalize_errors(errors)

@@ -24,7 +24,16 @@ RSpec.describe Zodra::Controller do
     rendered_ref = rendered
 
     Class.new do
-      def self.rescue_from(*); end
+      @rescue_handlers = {}
+
+      def self.rescue_from(*exceptions, &block)
+        exceptions.each { |e| @rescue_handlers[e] = block }
+      end
+
+      def self.rescue_handlers
+        @rescue_handlers
+      end
+
       def self.wrap_parameters(*); end
       def self.name = "InvoicesController"
 
@@ -34,6 +43,14 @@ RSpec.describe Zodra::Controller do
       attr_accessor :action_name
 
       define_method(:render) { |**kwargs| rendered_ref.merge!(kwargs) }
+
+      def rescue_with_handler(exception)
+        handler = self.class.rescue_handlers[exception.class]
+        return false unless handler
+
+        instance_exec(exception, &handler)
+        true
+      end
     end
   end
 
@@ -199,6 +216,115 @@ RSpec.describe Zodra::Controller do
           controller.send(:zodra_errors, { anything: ["ok"] })
         }.not_to raise_error
       end
+    end
+  end
+
+  describe "error DSL" do
+    it "stores error definitions on action" do
+      Zodra.contract(:orders) do
+        action :create do
+          params do
+            string :number
+          end
+          error :already_finalized, status: 409
+          error :insufficient_balance, status: 422
+        end
+      end
+
+      order_contract = Zodra::ContractRegistry.global.find!(:orders)
+      action = order_contract.find_action(:create)
+
+      expect(action.errors).to have_key(:already_finalized)
+      expect(action.errors[:already_finalized]).to eq({ code: :already_finalized, status: 409 })
+      expect(action.errors[:insufficient_balance]).to eq({ code: :insufficient_balance, status: 422 })
+    end
+
+    it "find_error returns nil for unknown codes" do
+      action = contract.find_action(:create)
+
+      expect(action.find_error(:nonexistent)).to be_nil
+    end
+  end
+
+  describe ".zodra_rescue" do
+    let(:action_name) { "create" }
+
+    let(:contract) do
+      Zodra.contract(:invoices) do
+        action :create do
+          params do
+            string :number, min: 1
+            decimal :amount, min: 0
+          end
+          error :already_finalized, status: 409
+          error :insufficient_balance, status: 422
+        end
+
+        action :index do
+        end
+      end
+    end
+
+    let(:already_finalized_error) do
+      Class.new(StandardError)
+    end
+
+    let(:insufficient_balance_error) do
+      Class.new(StandardError)
+    end
+
+    it "renders business error with code and message" do
+      controller_class.zodra_rescue :create, already_finalized_error, as: :already_finalized
+
+      exception = already_finalized_error.new("Invoice is already finalized")
+      controller.rescue_with_handler(exception)
+
+      expect(rendered[:status]).to eq(409)
+      expect(rendered[:json]).to eq({
+        error: { code: "already_finalized", message: "Invoice is already finalized" }
+      })
+    end
+
+    it "uses status from error definition in contract" do
+      controller_class.zodra_rescue :create, insufficient_balance_error, as: :insufficient_balance
+
+      exception = insufficient_balance_error.new("Not enough funds")
+      controller.rescue_with_handler(exception)
+
+      expect(rendered[:status]).to eq(422)
+      expect(rendered[:json][:error][:code]).to eq("insufficient_balance")
+    end
+
+    it "re-raises if exception does not match current action" do
+      controller_class.zodra_rescue :index, already_finalized_error, as: :already_finalized
+
+      exception = already_finalized_error.new("wrong action")
+
+      expect {
+        controller.send(:handle_zodra_business_error, exception)
+      }.to raise_error(already_finalized_error, "wrong action")
+    end
+
+    it "falls back to 500 if error code not in contract" do
+      unmapped_error = Class.new(StandardError)
+      controller_class.zodra_rescue :create, unmapped_error, as: :unknown_code
+
+      exception = unmapped_error.new("something broke")
+      controller.rescue_with_handler(exception)
+
+      expect(rendered[:status]).to eq(:internal_server_error)
+      expect(rendered[:json][:error][:code]).to eq("unknown_code")
+    end
+
+    it "handles multiple error mappings for same action" do
+      controller_class.zodra_rescue :create, already_finalized_error, as: :already_finalized
+      controller_class.zodra_rescue :create, insufficient_balance_error, as: :insufficient_balance
+
+      exception = insufficient_balance_error.new("No funds")
+      controller.rescue_with_handler(exception)
+
+      expect(rendered[:json][:error][:code]).to eq("insufficient_balance")
+      expect(rendered[:status]).to eq(422)
     end
   end
 end
