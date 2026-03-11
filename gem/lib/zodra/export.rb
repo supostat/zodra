@@ -15,9 +15,12 @@ module Zodra
       mapper = mapper_class.new(key_format:)
       contracts = ContractRegistry.global.to_a
 
+      definitions = SurfaceResolver.call(TypeRegistry.global.to_a, contracts)
+      analysis = TypeAnalysis.call(definitions)
+
       parts = []
       parts << "import { z } from '#{zod_import}';" if format == :zod
-      parts << mapper.map_definitions(TypeRegistry.global.to_a)
+      parts << mapper.map_definitions(analysis.sorted, cycles: analysis.cycles)
       parts << mapper.map_contracts(contracts) unless contracts.empty?
       parts.reject(&:empty?).join("\n\n")
     end

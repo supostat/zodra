@@ -27,7 +27,7 @@ module Zodra
         end
       end
 
-      def map_definitions(definitions)
+      def map_definitions(definitions, cycles: Set.new)
         definitions.map { |definition| map_definition(definition) }.join("\n\n")
       end
 

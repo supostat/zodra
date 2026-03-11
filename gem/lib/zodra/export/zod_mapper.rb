@@ -19,16 +19,16 @@ module Zodra
         @key_format = key_format
       end
 
-      def map_definition(definition)
+      def map_definition(definition, lazy: false)
         case definition.kind
-        when :object then map_object(definition)
+        when :object then map_object(definition, lazy:)
         when :enum then map_enum(definition)
-        when :union then map_union(definition)
+        when :union then map_union(definition, lazy:)
         end
       end
 
-      def map_definitions(definitions)
-        definitions.map { |definition| map_definition(definition) }.join("\n\n")
+      def map_definitions(definitions, cycles: Set.new)
+        definitions.map { |definition| map_definition(definition, lazy: cycles.include?(definition.name)) }.join("\n\n")
       end
 
       def map_contract(contract)
@@ -43,9 +43,16 @@ module Zodra
 
       private
 
-      def map_object(definition)
+      def map_object(definition, lazy: false)
+        name = pascal_case(definition.name)
         properties = definition.attributes.values.map { |attr| "  #{map_property(attr)}," }
-        "export const #{pascal_case(definition.name)}Schema = z.object({\n#{properties.join("\n")}\n});"
+        body = "z.object({\n#{properties.join("\n")}\n})"
+
+        if lazy
+          "export const #{name}Schema: z.ZodType<#{name}> = z.lazy(() => #{body});"
+        else
+          "export const #{name}Schema = #{body};"
+        end
       end
 
       def map_enum(definition)
@@ -53,12 +60,19 @@ module Zodra
         "export const #{pascal_case(definition.name)}Schema = z.enum([#{values}]);"
       end
 
-      def map_union(definition)
+      def map_union(definition, lazy: false)
+        name = pascal_case(definition.name)
         discriminator_key = transform_key(definition.discriminator)
         variants = definition.variants.map { |variant| map_variant(variant, discriminator_key) }
         indent = "  "
-        "export const #{pascal_case(definition.name)}Schema = z.discriminatedUnion('#{discriminator_key}', [\n" \
-          "#{variants.map { |v| "#{indent}#{v}" }.join(",\n")},\n]);"
+        body = "z.discriminatedUnion('#{discriminator_key}', [\n" \
+          "#{variants.map { |v| "#{indent}#{v}" }.join(",\n")},\n])"
+
+        if lazy
+          "export const #{name}Schema: z.ZodType<#{name}> = z.lazy(() => #{body});"
+        else
+          "export const #{name}Schema = #{body};"
+        end
       end
 
       def map_variant(variant, discriminator_key)

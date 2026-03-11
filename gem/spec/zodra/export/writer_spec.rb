@@ -10,6 +10,7 @@ RSpec.describe Zodra::Export::Writer do
 
   before do
     Zodra::TypeRegistry.global.clear!
+    Zodra::ContractRegistry.global.clear!
     configuration.output_path = output_dir
 
     Zodra.type :user do
@@ -18,7 +19,11 @@ RSpec.describe Zodra::Export::Writer do
     end
   end
 
-  after { FileUtils.rm_rf(output_dir) }
+  after do
+    Zodra::TypeRegistry.global.clear!
+    Zodra::ContractRegistry.global.clear!
+    FileUtils.rm_rf(output_dir)
+  end
 
   describe "#write" do
     it "writes Zod schemas to schemas.ts" do

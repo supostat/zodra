@@ -34,5 +34,13 @@ module Zodra
     def array?
       type == :array
     end
+
+    def dependency_name
+      if reference?
+        reference_name.to_sym
+      elsif array? && of
+        of.to_sym
+      end
+    end
   end
 end

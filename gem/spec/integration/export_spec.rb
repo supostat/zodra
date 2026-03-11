@@ -272,4 +272,144 @@ RSpec.describe "Export pipeline", :acceptance do
       expect(result).to include("export const EmptyResourceContract = {} as const;")
     end
   end
+
+  describe "topological sorting" do
+    it "orders Zod schemas so dependencies come first" do
+      Zodra.type(:invoice) do
+        uuid :id
+        reference :customer
+        array :items, of: :item
+      end
+
+      Zodra.type(:customer) do
+        uuid :id
+        string :name
+      end
+
+      Zodra.type(:item) do
+        uuid :id
+        string :description
+      end
+
+      result = Zodra::Export.generate(:zod)
+
+      customer_pos = result.index("CustomerSchema")
+      item_pos = result.index("ItemSchema")
+      invoice_pos = result.index("InvoiceSchema = z.object")
+
+      expect(customer_pos).to be < invoice_pos
+      expect(item_pos).to be < invoice_pos
+    end
+
+    it "orders TypeScript interfaces with dependencies first" do
+      Zodra.type(:invoice) { reference :customer }
+      Zodra.type(:customer) { string :name }
+
+      result = Zodra::Export.generate(:typescript)
+
+      customer_pos = result.index("export interface Customer")
+      invoice_pos = result.index("export interface Invoice")
+
+      expect(customer_pos).to be < invoice_pos
+    end
+  end
+
+  describe "surface resolver filtering" do
+    it "excludes types not reachable from contracts" do
+      Zodra.type(:invoice) { string :number }
+      Zodra.type(:unused_type) { string :data }
+
+      Zodra.contract :invoices do
+        action :show do
+          params { uuid :id }
+          response :invoice
+        end
+      end
+
+      result = Zodra::Export.generate(:typescript)
+
+      expect(result).to include("export interface Invoice")
+      expect(result).not_to include("UnusedType")
+    end
+
+    it "includes transitively referenced types" do
+      Zodra.type(:address) { string :city }
+      Zodra.type(:customer) do
+        string :name
+        reference :address
+      end
+      Zodra.type(:invoice) { reference :customer }
+      Zodra.type(:unused) { string :data }
+
+      Zodra.contract :invoices do
+        action :show do
+          params { uuid :id }
+          response :invoice
+        end
+      end
+
+      result = Zodra::Export.generate(:zod)
+
+      expect(result).to include("AddressSchema")
+      expect(result).to include("CustomerSchema")
+      expect(result).to include("InvoiceSchema")
+      expect(result).not_to include("UnusedSchema")
+    end
+
+    it "exports all types when no contracts exist" do
+      Zodra.type(:alpha) { string :name }
+      Zodra.type(:beta) { string :name }
+
+      result = Zodra::Export.generate(:typescript)
+
+      expect(result).to include("export interface Alpha")
+      expect(result).to include("export interface Beta")
+    end
+  end
+
+  describe "cyclic types" do
+    it "wraps self-referencing Zod type with z.lazy" do
+      Zodra.type :comment do
+        uuid :id
+        string :text
+        array :replies, of: :comment
+      end
+
+      result = Zodra::Export.generate(:zod, key_format: :keep)
+
+      expect(result).to include("z.lazy(() => z.object(")
+      expect(result).to include("z.ZodType<Comment>")
+      expect(result).to include("replies: z.array(CommentSchema)")
+    end
+
+    it "generates normal TypeScript interface for self-referencing type" do
+      Zodra.type :comment do
+        uuid :id
+        string :text
+        array :replies, of: :comment
+      end
+
+      result = Zodra::Export.generate(:typescript, key_format: :keep)
+
+      expect(result).to include("export interface Comment {")
+      expect(result).to include("replies: Comment[];")
+      expect(result).not_to include("lazy")
+    end
+
+    it "wraps mutually recursive Zod types with z.lazy" do
+      Zodra.type :employee do
+        string :name
+        reference :department
+      end
+      Zodra.type :department do
+        string :title
+        reference :employee
+      end
+
+      result = Zodra::Export.generate(:zod, key_format: :keep)
+
+      expect(result).to include("z.ZodType<Employee>")
+      expect(result).to include("z.ZodType<Department>")
+    end
+  end
 end
