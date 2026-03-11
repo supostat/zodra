@@ -11,12 +11,18 @@ Zodra.type :post do
 end`
 
 const step3Code = `// Use in your frontend
-import { PostSchema, type Post } from './zodra'
+import { createApiClient } from '@zodra/client'
+import { contracts } from './zodra/contracts'
 
-function createPost(data: Omit<Post, 'id'>) {
-  const validated = PostSchema.omit({ id: true }).parse(data)
-  return api.post('/posts', validated)
-}`
+const api = createApiClient({
+  baseUrl: '/api/v1',
+  contracts,
+})
+
+const { data } = await api.posts.create({
+  title: "Hello World",
+  body: "My first post",
+})`
 
 export function HowItWorks() {
   return (

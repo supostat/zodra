@@ -45,6 +45,15 @@ RSpec.describe Zodra::Export::TypeScriptMapper do
       expect(result).to include("accountNumber: string")
     end
 
+    it "maps attribute enum to union of literals" do
+      definition = build_object(:product,
+                                currency: { type: :string, enum: %w[USD EUR GBP] })
+
+      result = mapper.map_definition(definition)
+
+      expect(result).to include("currency: 'USD' | 'EUR' | 'GBP';")
+    end
+
     it "maps optional fields with ?" do
       definition = build_object(:profile,
                                 name: { type: :string },

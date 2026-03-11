@@ -6,16 +6,16 @@ import { Github } from "lucide-react"
 const rubyCode = `Zodra.type :user do
   uuid :id
   string :name, min: 1
-  string :email, format: :email
+  string :email
   integer :age, min: 0
   timestamps
 end`
 
-const typescriptCode = `import { UserSchema, type User } from './zodra'
+const typescriptCode = `import { UserSchema } from './zodra/schemas'
 
 // Full TypeScript inference
-const user: User = {
-  id: "550e8400-e29b...",
+const user = {
+  id: "550e8400-e29b-41d4-a716-446655440000",
   name: "Alice",
   email: "alice@example.com",
   age: 28,
@@ -109,7 +109,7 @@ export function Hero() {
             <DynamicCodeBlock
               code={typescriptCode}
               lang="typescript"
-              codeblock={{ title: "zodra/user.ts" }}
+              codeblock={{ title: "zodra/schemas.ts" }}
             />
           </div>
         </div>

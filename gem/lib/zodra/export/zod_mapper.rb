@@ -95,7 +95,10 @@ module Zodra
       end
 
       def resolve_base_type(attribute)
-        if attribute.reference?
+        if attribute.enum
+          values = attribute.enum.map { |v| "'#{v}'" }.join(", ")
+          "z.enum([#{values}])"
+        elsif attribute.reference?
           "#{pascal_case(attribute.reference_name)}Schema"
         elsif attribute.array?
           "z.array(#{pascal_case(attribute.of)}Schema)"

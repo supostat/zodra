@@ -88,6 +88,20 @@ RSpec.describe Zodra::ParamsValidator do
       expect(errors[:price]).to include("must be greater than or equal to 0.01")
     end
 
+    it "validates enum inclusion" do
+      schema = build_schema(currency: { type: :string, enum: %w[USD EUR GBP] })
+      errors = described_class.call({ currency: "JPY" }, schema:)
+
+      expect(errors[:currency]).to include("is not included in the list")
+    end
+
+    it "passes valid enum value" do
+      schema = build_schema(currency: { type: :string, enum: %w[USD EUR GBP] })
+      errors = described_class.call({ currency: "USD" }, schema:)
+
+      expect(errors).to be_empty
+    end
+
     it "collects multiple errors per field" do
       schema = build_schema(name: { type: :string })
       errors = described_class.call({ name: :coercion_error }, schema:)

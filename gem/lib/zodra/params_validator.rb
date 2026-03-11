@@ -40,6 +40,11 @@ module Zodra
       field_errors = []
       resolved_type = resolve_base_type(attribute.type)
 
+      if attribute.enum
+        allowed = attribute.enum.map(&:to_s)
+        field_errors << "is not included in the list" unless allowed.include?(value.to_s)
+      end
+
       if attribute.min
         if STRING_TYPES.include?(resolved_type)
           field_errors << "is too short (minimum is #{attribute.min} characters)" if value.to_s.length < attribute.min

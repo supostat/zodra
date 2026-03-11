@@ -45,18 +45,16 @@ end`,
 import { z } from 'zod'
 
 export const ProductSchema = z.object({
-  id: z.string().uuid(),
+  id: z.uuid(),
   name: z.string().min(1).max(255),
   description: z.string().optional(),
   price: z.number().min(0),
   currency: z.enum(['USD', 'EUR', 'GBP']),
   in_stock: z.boolean().default(true),
   tags: z.array(z.string()),
-  created_at: z.string().datetime(),
-  updated_at: z.string().datetime(),
+  created_at: z.iso.datetime(),
+  updated_at: z.iso.datetime(),
 })
-
-export type Product = z.infer<typeof ProductSchema>
 
 export const CreateProductsParamsSchema = z.object({
   name: z.string().min(1).max(255),
@@ -103,7 +101,7 @@ const tabLanguages: Record<TabId, string> = {
 const tabFilenames: Record<TabId, string> = {
   type: "app/types/product.rb",
   contract: "app/contracts/products.rb",
-  schema: "zodra/product.ts",
+  schema: "zodra/schemas.ts",
   frontend: "src/api/client.ts",
 }
 

@@ -85,6 +85,15 @@ RSpec.describe Zodra::Export::ZodMapper do
       expect(result).to include("items: z.array(ItemSchema)")
     end
 
+    it "maps attribute enum to z.enum" do
+      definition = build_object(:product,
+                                currency: { type: :string, enum: %w[USD EUR GBP] })
+
+      result = mapper.map_definition(definition)
+
+      expect(result).to include("currency: z.enum(['USD', 'EUR', 'GBP'])")
+    end
+
     it "maps min/max constraints" do
       definition = build_object(:product,
                                 name: { type: :string, min: 1, max: 100 },
