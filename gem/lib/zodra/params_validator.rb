@@ -43,6 +43,12 @@ module Zodra
       if attribute.enum
         allowed = attribute.enum.map(&:to_s)
         field_errors << 'is not included in the list' unless allowed.include?(value.to_s)
+      elsif attribute.enum_ref?
+        enum_def = TypeRegistry.global.find(attribute.enum_type_name)
+        if enum_def
+          allowed = enum_def.values.map(&:to_s)
+          field_errors << 'is not included in the list' unless allowed.include?(value.to_s)
+        end
       end
 
       if attribute.min

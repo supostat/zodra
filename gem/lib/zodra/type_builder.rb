@@ -40,18 +40,26 @@ module Zodra
     def method_missing(method_name, *args, **, &)
       name_string = method_name.to_s
       optional = name_string.end_with?('?')
-      scalar_name = optional ? name_string.delete_suffix('?').to_sym : method_name
+      resolved_name = optional ? name_string.delete_suffix('?').to_sym : method_name
 
-      if ScalarRegistry.global.exists?(scalar_name)
-        @definition.add_attribute(args.first, type: scalar_name, optional:, **)
+      if ScalarRegistry.global.exists?(resolved_name)
+        @definition.add_attribute(args.first, type: resolved_name, optional:, **)
+      elsif (enum_def = TypeRegistry.global.find(resolved_name)) && enum_def.kind == :enum
+        @definition.add_attribute(args.first, type: :string, enum_type_name: resolved_name, optional:, **)
       else
         super
       end
     end
 
     def respond_to_missing?(method_name, include_private = false)
-      scalar_name = method_name.to_s.delete_suffix('?').to_sym
-      ScalarRegistry.global.exists?(scalar_name) || super
+      resolved_name = method_name.to_s.delete_suffix('?').to_sym
+      ScalarRegistry.global.exists?(resolved_name) || enum_type?(resolved_name) || super
+    end
+
+    private
+
+    def enum_type?(name)
+      (def_entry = TypeRegistry.global.find(name)) && def_entry.kind == :enum
     end
   end
 end

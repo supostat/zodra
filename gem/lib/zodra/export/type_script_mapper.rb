@@ -78,6 +78,8 @@ module Zodra
       def map_type(attribute)
         if attribute.enum
           attribute.enum.map { |v| "'#{v}'" }.join(' | ')
+        elsif attribute.enum_ref?
+          pascal_case(attribute.enum_type_name)
         elsif attribute.reference?
           pascal_case(attribute.reference_name)
         elsif attribute.array?

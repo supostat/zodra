@@ -112,6 +112,31 @@ RSpec.describe 'Zodra DSL' do
       expect(definition.kind).to eq(:enum)
       expect(definition.values).to eq(%i[draft sent paid])
     end
+
+    it 'can be used as attribute type in another type' do
+      Zodra.enum :priority, values: %i[low medium high]
+      Zodra.type :task do
+        string :title
+        priority :level
+      end
+
+      definition = Zodra::TypeRegistry.global.find!(:task)
+      attr = definition.attributes[:level]
+      expect(attr.type).to eq(:string)
+      expect(attr.enum_type_name).to eq(:priority)
+      expect(attr.enum_ref?).to be true
+    end
+
+    it 'supports optional enum ref with ? suffix' do
+      Zodra.enum :priority, values: %i[low medium high]
+      Zodra.type :task do
+        priority? :level
+      end
+
+      attr = Zodra::TypeRegistry.global.find!(:task).attributes[:level]
+      expect(attr.enum_ref?).to be true
+      expect(attr.optional?).to be true
+    end
   end
 
   describe '.union' do

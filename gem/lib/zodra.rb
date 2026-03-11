@@ -33,7 +33,9 @@ module Zodra
     end
 
     def type(name, from: nil, pick: nil, omit: nil, partial: false, &block)
-      definition = TypeRegistry.global.register(name, kind: :object)
+      raise DuplicateTypeError, "Type :#{name} is already registered" if TypeRegistry.global.exists?(name)
+
+      definition = Definition.new(name:, kind: :object)
 
       if from
         source = TypeRegistry.global.find!(from)
@@ -41,6 +43,7 @@ module Zodra
       end
 
       TypeBuilder.new(definition).instance_eval(&block) if block
+      TypeRegistry.global.store(name, definition)
       definition
     end
 
@@ -49,8 +52,11 @@ module Zodra
     end
 
     def union(name, discriminator:, &block)
-      definition = TypeRegistry.global.register(name, kind: :union, discriminator:)
+      raise DuplicateTypeError, "Type :#{name} is already registered" if TypeRegistry.global.exists?(name)
+
+      definition = Definition.new(name:, kind: :union, discriminator:)
       UnionBuilder.new(definition).instance_eval(&block) if block
+      TypeRegistry.global.store(name, definition)
       definition
     end
 
@@ -96,7 +102,17 @@ module Zodra
     private
 
     def load_definition_dir(path)
-      Dir[path.join('**/*.rb')].each { |file| load(file) }
+      files = Dir[path.join('**/*.rb')].sort
+      failed = []
+
+      files.each do |file|
+        load(file)
+      rescue NoMethodError => error
+        logger&.debug { "Deferring load of #{file}: #{error.message}" }
+        failed << file
+      end
+
+      failed.each { |file| load(file) }
     end
 
     def resolve_resource_routes(resource, base_path, parent_param: nil)

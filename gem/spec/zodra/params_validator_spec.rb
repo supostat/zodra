@@ -102,6 +102,24 @@ RSpec.describe Zodra::ParamsValidator do
       expect(errors).to be_empty
     end
 
+    it 'validates enum ref inclusion' do
+      Zodra::TypeRegistry.global.clear!
+      Zodra.enum :priority, values: %i[low medium high]
+      schema = build_schema(level: { type: :string, enum_type_name: :priority })
+      errors = described_class.call({ level: 'critical' }, schema:)
+
+      expect(errors[:level]).to include('is not included in the list')
+    end
+
+    it 'passes valid enum ref value' do
+      Zodra::TypeRegistry.global.clear!
+      Zodra.enum :priority, values: %i[low medium high]
+      schema = build_schema(level: { type: :string, enum_type_name: :priority })
+      errors = described_class.call({ level: 'high' }, schema:)
+
+      expect(errors).to be_empty
+    end
+
     it 'collects multiple errors per field' do
       schema = build_schema(name: { type: :string })
       errors = described_class.call({ name: :coercion_error }, schema:)

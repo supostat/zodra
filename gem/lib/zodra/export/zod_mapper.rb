@@ -97,6 +97,8 @@ module Zodra
         if attribute.enum
           values = attribute.enum.map { |v| "'#{v}'" }.join(', ')
           "z.enum([#{values}])"
+        elsif attribute.enum_ref?
+          "#{pascal_case(attribute.enum_type_name)}Schema"
         elsif attribute.reference?
           "#{pascal_case(attribute.reference_name)}Schema"
         elsif attribute.array?

@@ -13,10 +13,14 @@ module Zodra
     end
 
     def register(name, kind:, **)
+      store(name, Definition.new(name: name.to_sym, kind:, **))
+    end
+
+    def store(name, definition)
       name = name.to_sym
       raise DuplicateTypeError, "Type :#{name} is already registered" if @store.key?(name)
 
-      @store[name] = Definition.new(name:, kind:, **)
+      @store[name] = definition
     end
 
     def find(name)

@@ -54,6 +54,15 @@ RSpec.describe Zodra::Export::TypeScriptMapper do
       expect(result).to include("currency: 'USD' | 'EUR' | 'GBP';")
     end
 
+    it 'maps enum ref to type name' do
+      definition = build_object(:order,
+                                status: { type: :string, enum_type_name: :order_status })
+
+      result = mapper.map_definition(definition)
+
+      expect(result).to include('  status: OrderStatus;')
+    end
+
     it 'maps optional fields with ?' do
       definition = build_object(:profile,
                                 name: { type: :string },
