@@ -6,7 +6,11 @@ module Zodra
   module Controller
     extend ActiveSupport::Concern
 
+    RAILS_INTERNAL_KEYS = %w[controller action format].freeze
+
     included do
+      wrap_parameters false
+
       rescue_from Zodra::ParamsError do |error|
         render json: { errors: transform_error_keys(error.errors) }, status: :unprocessable_entity
       end
@@ -26,7 +30,8 @@ module Zodra
 
     def zodra_params
       @zodra_params ||= begin
-        result = ParamsParser.call(request.parameters, schema: zodra_action.params)
+        raw = request.parameters.except(*RAILS_INTERNAL_KEYS)
+        result = ParamsParser.call(raw, schema: zodra_action.params)
         raise ParamsError, result.errors unless result.valid?
 
         result.params

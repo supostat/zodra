@@ -6,11 +6,6 @@ module Zodra
       load File.expand_path("tasks/zodra.rake", __dir__)
     end
 
-    initializer "zodra.autoload_types" do |app|
-      types_path = app.root.join("app", "types")
-      app.autoloaders.main.push_dir(types_path) if types_path.exist?
-    end
-
     initializer "zodra.route_helper" do
       ActionDispatch::Routing::Mapper.include(Zodra::RouteHelper)
     end
