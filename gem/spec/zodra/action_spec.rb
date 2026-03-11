@@ -16,10 +16,10 @@ RSpec.describe Zodra::Action do
   it "allows setting http_method, path, and response" do
     action.http_method = :post
     action.path = "/invoices"
-    action.response = :invoice
+    action.response_type = :invoice
 
     expect(action.http_method).to eq(:post)
     expect(action.path).to eq("/invoices")
-    expect(action.response).to eq(:invoice)
+    expect(action.response_type).to eq(:invoice)
   end
 end

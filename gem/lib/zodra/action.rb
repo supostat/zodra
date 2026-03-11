@@ -2,13 +2,33 @@
 
 module Zodra
   class Action
-    attr_reader :name, :params
+    attr_reader :name, :params, :contract, :response_definition
 
-    attr_accessor :http_method, :path, :response
+    attr_accessor :http_method, :path, :response_type
 
-    def initialize(name:)
+    def initialize(name:, contract: nil)
       @name = name
+      @contract = contract
       @params = Definition.new(name: :"#{name}_params", kind: :object)
+      @response_definition = Definition.new(name: :"#{name}_response", kind: :object)
+      @response_type = nil
+      @collection = false
+    end
+
+    def collection?
+      @collection
+    end
+
+    def collection!
+      @collection = true
+    end
+
+    def response_schema
+      if response_type
+        contract&.resolve_type(response_type) || TypeRegistry.global.find!(response_type)
+      else
+        response_definition
+      end
     end
   end
 end

@@ -135,7 +135,7 @@ module Zodra
         entries = contract.actions.values.map do |action|
           params_schema = "#{pascal_case(action.name)}#{name}ParamsSchema"
           parts = ["method: '#{action.http_method.to_s.upcase}' as const", "path: '#{action.path}' as const", "params: #{params_schema}"]
-          parts << "response: #{pascal_case(action.response)}Schema" if action.response
+          parts << "response: #{pascal_case(action.response_type)}Schema" if action.response_type
           "  #{action.name}: { #{parts.join(', ')} }"
         end
 

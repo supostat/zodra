@@ -19,10 +19,12 @@ module Zodra
       end
     end
 
-    def self.call(raw_params, schema:)
+    def self.call(raw_params, schema:, strict: Zodra.configuration.strict_params)
+      errors = {}
+      errors.merge!(check_unknown_keys(raw_params, schema)) if strict
       filtered = filter(raw_params, schema)
       coerced = coerce(filtered, schema)
-      errors = ParamsValidator.call(coerced, schema:)
+      errors.merge!(ParamsValidator.call(coerced, schema:))
 
       if errors.empty?
         apply_defaults(coerced, schema)
@@ -30,6 +32,18 @@ module Zodra
       else
         Result.new(params: {}, errors:)
       end
+    end
+
+    def self.check_unknown_keys(raw_params, schema)
+      known_keys = schema.attributes.keys
+      unknown_keys = raw_params.keys.map(&:to_sym) - known_keys
+      errors = {}
+
+      unknown_keys.each do |key|
+        errors[key] = ["is not allowed"]
+      end
+
+      errors
     end
 
     def self.filter(raw_params, schema)
@@ -71,6 +85,6 @@ module Zodra
       end
     end
 
-    private_class_method :filter, :coerce, :apply_defaults
+    private_class_method :check_unknown_keys, :filter, :coerce, :apply_defaults
   end
 end

@@ -99,7 +99,7 @@ RSpec.describe "Params parsing pipeline", :acceptance do
     expect(result.errors[:name]).to include("is required")
   end
 
-  it "filters unknown params" do
+  it "rejects unknown params in strict mode" do
     Zodra.contract :users do
       action :create do
         post "/users"
@@ -114,6 +114,29 @@ RSpec.describe "Params parsing pipeline", :acceptance do
     result = Zodra::ParamsParser.call(
       { "name" => "John", "admin" => "true", "role" => "superuser" },
       schema: action.params
+    )
+
+    expect(result).to be_invalid
+    expect(result.errors[:admin]).to include("is not allowed")
+    expect(result.errors[:role]).to include("is not allowed")
+  end
+
+  it "filters unknown params in non-strict mode" do
+    Zodra.contract :users do
+      action :create do
+        post "/users"
+        params do
+          string :name
+        end
+      end
+    end
+
+    action = Zodra::ContractRegistry.global.find!(:users).find_action(:create)
+
+    result = Zodra::ParamsParser.call(
+      { "name" => "John", "admin" => "true" },
+      schema: action.params,
+      strict: false
     )
 
     expect(result).to be_valid

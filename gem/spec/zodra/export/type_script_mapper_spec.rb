@@ -117,7 +117,7 @@ RSpec.describe Zodra::Export::TypeScriptMapper do
         action = c.add_action(:create)
         action.http_method = :post
         action.path = "/invoices"
-        action.response = :invoice
+        action.response_type = :invoice
         Zodra::TypeBuilder.new(action.params).instance_eval do
           string :number, min: 1
           decimal :amount, min: 0
@@ -136,7 +136,7 @@ RSpec.describe Zodra::Export::TypeScriptMapper do
         action = c.add_action(:create)
         action.http_method = :post
         action.path = "/invoices"
-        action.response = :invoice
+        action.response_type = :invoice
       end
 
       result = mapper.map_contract(contract)

@@ -40,13 +40,13 @@ RSpec.describe "Contract DSL", :acceptance do
     expect(create.path).to eq("/invoices")
     expect(create.params.attributes.keys).to eq(%i[number amount])
     expect(create.params.attributes[:number].type).to eq(:string)
-    expect(create.response).to eq(:invoice)
+    expect(create.response_type).to eq(:invoice)
 
     show = contract.find_action(:show)
     expect(show.http_method).to eq(:get)
     expect(show.path).to eq("/invoices/:id")
     expect(show.params.attributes[:id].type).to eq(:uuid)
-    expect(show.response).to eq(:invoice)
+    expect(show.response_type).to eq(:invoice)
   end
 
   it "supports contract without actions" do
@@ -70,6 +70,6 @@ RSpec.describe "Contract DSL", :acceptance do
     action = Zodra::ContractRegistry.global.find!(:search).find_action(:query)
     expect(action.params.attributes[:q].type).to eq(:string)
     expect(action.params.attributes[:page].default).to eq(1)
-    expect(action.response).to be_nil
+    expect(action.response_type).to be_nil
   end
 end

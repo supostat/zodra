@@ -7,6 +7,15 @@ module Zodra
   class DuplicateTypeError < Error; end
   class ConfigurationError < Error; end
 
+  class ParamsError < Error
+    attr_reader :errors
+
+    def initialize(errors)
+      @errors = errors
+      super("Params validation failed")
+    end
+  end
+
   class << self
     def configuration
       @configuration ||= Configuration.new

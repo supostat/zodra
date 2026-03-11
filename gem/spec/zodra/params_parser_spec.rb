@@ -14,10 +14,10 @@ RSpec.describe Zodra::ParamsParser do
       expect(result.params).to eq({ name: "John", age: 30 })
     end
 
-    it "filters unknown keys" do
+    it "filters unknown keys in non-strict mode" do
       schema = build_schema(name: { type: :string })
 
-      result = described_class.call({ "name" => "John", "admin" => "true" }, schema:)
+      result = described_class.call({ "name" => "John", "admin" => "true" }, schema:, strict: false)
 
       expect(result).to be_valid
       expect(result.params.keys).to eq([:name])

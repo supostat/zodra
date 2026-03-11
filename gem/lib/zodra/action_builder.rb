@@ -19,8 +19,14 @@ module Zodra
       TypeBuilder.new(@action.params).instance_eval(&block)
     end
 
-    def response(type_name)
-      @action.response = type_name.to_sym
+    def response(type_name = nil, collection: false, &block)
+      @action.collection! if collection
+
+      if block
+        TypeBuilder.new(@action.response_definition).instance_eval(&block)
+      elsif type_name
+        @action.response_type = type_name.to_sym
+      end
     end
   end
 end
