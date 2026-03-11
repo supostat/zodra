@@ -63,7 +63,9 @@ jobs:
           cache-dependency-path: js/pnpm-lock.yaml
       - run: pnpm install --frozen-lockfile
       - run: pnpm --filter @zodra/client build
-      - run: pnpm typecheck
+      - run: pnpm --filter @zodra/client typecheck
+      - run: pnpm --filter zodra-vscode typecheck
+      - run: pnpm --filter zodra-example-frontend typecheck
       - run: pnpm test
 
   all-green:
