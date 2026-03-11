@@ -38,8 +38,12 @@ module Zodra
 
     def self.validate_constraints(value, attribute, errors)
       field_errors = []
-      resolved_type = resolve_base_type(attribute.type)
+      validate_enum(value, attribute, field_errors)
+      validate_range(value, attribute, field_errors)
+      errors[attribute.name] = field_errors if field_errors.any?
+    end
 
+    def self.validate_enum(value, attribute, field_errors)
       if attribute.enum
         allowed = attribute.enum.map(&:to_s)
         field_errors << 'is not included in the list' unless allowed.include?(value.to_s)
@@ -50,24 +54,32 @@ module Zodra
           field_errors << 'is not included in the list' unless allowed.include?(value.to_s)
         end
       end
+    end
 
-      if attribute.min
-        if STRING_TYPES.include?(resolved_type)
-          field_errors << "is too short (minimum is #{attribute.min} characters)" if value.to_s.length < attribute.min
-        elsif NUMERIC_TYPES.include?(resolved_type)
-          field_errors << "must be greater than or equal to #{attribute.min}" if value < attribute.min
-        end
+    def self.validate_range(value, attribute, field_errors)
+      resolved_type = resolve_base_type(attribute.type)
+      validate_minimum(value, attribute, resolved_type, field_errors)
+      validate_maximum(value, attribute, resolved_type, field_errors)
+    end
+
+    def self.validate_minimum(value, attribute, resolved_type, field_errors)
+      return unless attribute.min
+
+      if STRING_TYPES.include?(resolved_type)
+        field_errors << "is too short (minimum is #{attribute.min} characters)" if value.to_s.length < attribute.min
+      elsif NUMERIC_TYPES.include?(resolved_type)
+        field_errors << "must be greater than or equal to #{attribute.min}" if value < attribute.min
       end
+    end
 
-      if attribute.max
-        if STRING_TYPES.include?(resolved_type)
-          field_errors << "is too long (maximum is #{attribute.max} characters)" if value.to_s.length > attribute.max
-        elsif NUMERIC_TYPES.include?(resolved_type)
-          field_errors << "must be less than or equal to #{attribute.max}" if value > attribute.max
-        end
+    def self.validate_maximum(value, attribute, resolved_type, field_errors)
+      return unless attribute.max
+
+      if STRING_TYPES.include?(resolved_type)
+        field_errors << "is too long (maximum is #{attribute.max} characters)" if value.to_s.length > attribute.max
+      elsif NUMERIC_TYPES.include?(resolved_type)
+        field_errors << "must be less than or equal to #{attribute.max}" if value > attribute.max
       end
-
-      errors[attribute.name] = field_errors if field_errors.any?
     end
 
     def self.resolve_base_type(type)
@@ -75,6 +87,9 @@ module Zodra
       scalar ? scalar.base : type
     end
 
-    private_class_method :validate_attribute, :validate_constraints, :resolve_base_type
+    private_class_method :validate_attribute, :validate_constraints,
+                         :validate_enum, :validate_range,
+                         :validate_minimum, :validate_maximum,
+                         :resolve_base_type
   end
 end

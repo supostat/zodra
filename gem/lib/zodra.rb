@@ -102,13 +102,13 @@ module Zodra
     private
 
     def load_definition_dir(path)
-      files = Dir[path.join('**/*.rb')].sort
+      files = Dir[path.join('**/*.rb')]
       failed = []
 
       files.each do |file|
         load(file)
-      rescue NoMethodError => error
-        logger&.debug { "Deferring load of #{file}: #{error.message}" }
+      rescue NoMethodError => e
+        logger&.debug { "Deferring load of #{file}: #{e.message}" }
         failed << file
       end
 
