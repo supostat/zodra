@@ -4,7 +4,7 @@ import { Gem, Package } from "lucide-react"
 
 export function Install() {
   return (
-    <section className="py-24 px-6 lg:px-12 bg-secondary/30">
+    <section className="py-12 sm:py-16 lg:py-24 px-4 sm:px-6 lg:px-12 bg-secondary/30">
       <div className="max-w-4xl mx-auto">
         <div className="text-center mb-12">
           <h2 className="text-3xl sm:text-4xl font-bold tracking-tight">
@@ -52,8 +52,8 @@ export function Install() {
                   <p className="text-sm text-muted-foreground">NPM Package</p>
                 </div>
               </div>
-              <div className="flex items-center justify-between bg-code-bg rounded-lg px-4 py-3">
-                <code className="font-mono text-sm text-foreground">
+              <div className="flex items-center justify-between gap-2 bg-code-bg rounded-lg px-3 sm:px-4 py-3">
+                <code className="font-mono text-xs sm:text-sm text-foreground truncate">
                   <span className="text-brand">npm</span> install <span className="text-cyan-400">@zodra/client</span>
                 </code>
                 <CopyButton text="npm install @zodra/client" />

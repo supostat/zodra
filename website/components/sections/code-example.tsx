@@ -109,7 +109,7 @@ export function CodeExample() {
   const [activeTab, setActiveTab] = useState<TabId>("type")
 
   return (
-    <section className="py-24 px-6 lg:px-12">
+    <section className="py-12 sm:py-16 lg:py-24 px-4 sm:px-6 lg:px-12">
       <div className="max-w-5xl mx-auto">
         <div className="text-center mb-12">
           <h2 className="text-3xl sm:text-4xl font-bold tracking-tight">
@@ -121,14 +121,14 @@ export function CodeExample() {
         </div>
 
         {/* Tab Switcher */}
-        <div className="flex items-center justify-center mb-6 overflow-x-auto">
+        <div className="flex items-center justify-start sm:justify-center mb-6 overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden -mx-4 sm:mx-0 px-4 sm:px-0">
           <div className="inline-flex rounded-lg bg-secondary/50 p-1">
             {tabs.map((tab) => (
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id as TabId)}
                 className={cn(
-                  "px-4 py-2 text-sm font-medium rounded-md transition-all whitespace-nowrap",
+                  "px-3 sm:px-4 py-2.5 text-sm font-medium rounded-md transition-all whitespace-nowrap min-h-11",
                   activeTab === tab.id
                     ? "bg-brand text-white"
                     : "text-muted-foreground hover:text-foreground"

@@ -28,7 +28,7 @@ UserSchema.parse(user)`
 
 export function Hero() {
   return (
-    <section className="relative min-h-screen flex flex-col">
+    <section className="relative lg:min-h-screen flex flex-col">
       {/* Navigation */}
       <nav className="flex items-center justify-end px-6 py-4 lg:px-12">
         <div className="flex items-center gap-4">
@@ -51,17 +51,17 @@ export function Hero() {
       </nav>
 
       {/* Hero Content */}
-      <div className="flex-1 flex flex-col items-center justify-center px-6 py-12 lg:py-20">
+      <div className="flex-1 flex flex-col items-center justify-center px-4 sm:px-6 py-8 sm:py-12 lg:py-20">
         <div className="max-w-6xl mx-auto text-center">
           <Image
             src="/logo.svg"
             alt="Zodra"
             width={800}
             height={160}
-            className="h-40 sm:h-48 w-auto mx-auto mb-8"
+            className="h-20 sm:h-40 lg:h-48 w-auto mx-auto mb-6 sm:mb-8"
             priority
           />
-          <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold tracking-tight text-balance">
+          <h1 className="text-3xl sm:text-5xl lg:text-6xl font-bold tracking-tight text-balance">
             Type-safe from{" "}
             <span className="text-brand">Rails</span> to{" "}
             <span className="text-brand">TypeScript</span>
@@ -99,18 +99,20 @@ export function Hero() {
         </div>
 
         {/* Code Comparison */}
-        <div className="mt-16 w-full max-w-5xl mx-auto">
+        <div className="mt-10 sm:mt-16 w-full max-w-5xl mx-auto">
           <div className="grid md:grid-cols-2 gap-4">
             <DynamicCodeBlock
               code={rubyCode}
               lang="ruby"
               codeblock={{ title: "app/types/user.rb" }}
             />
-            <DynamicCodeBlock
-              code={typescriptCode}
-              lang="typescript"
-              codeblock={{ title: "zodra/schemas.ts" }}
-            />
+            <div className="hidden md:block">
+              <DynamicCodeBlock
+                code={typescriptCode}
+                lang="typescript"
+                codeblock={{ title: "zodra/schemas.ts" }}
+              />
+            </div>
           </div>
         </div>
       </div>
