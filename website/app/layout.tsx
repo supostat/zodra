@@ -21,6 +21,16 @@ export const metadata: Metadata = {
   },
   description:
     "Define your API once in Rails. Get TypeScript types, Zod schemas, and a typed client automatically.",
+  openGraph: {
+    title: "Zodra — Type-safe Rails to TypeScript",
+    description:
+      "Define your API once in Rails. Get TypeScript types, Zod schemas, and a typed client automatically.",
+    images: [{ url: "/og.png", width: 1200, height: 630 }],
+  },
+  twitter: {
+    card: "summary_large_image",
+    images: ["/og.png"],
+  },
   icons: {
     icon: [
       {
