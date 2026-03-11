@@ -27,6 +27,11 @@ module Zodra
       @definition.add_attribute(name, type: :array, of:, **options)
     end
 
+    def from(type_name, pick: nil, omit: nil, partial: false)
+      source = TypeRegistry.global.find!(type_name)
+      TypeDeriver.new(source, pick:, omit:, partial:).apply(@definition)
+    end
+
     def timestamps
       datetime :created_at
       datetime :updated_at

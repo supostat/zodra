@@ -12,8 +12,14 @@ module Zodra
       action
     end
 
-    def type(name, &block)
+    def type(name, from: nil, pick: nil, omit: nil, partial: false, &block)
       definition = @contract.types.register(name, kind: :object)
+
+      if from
+        source = @contract.resolve_type(from) || TypeRegistry.global.find!(from)
+        TypeDeriver.new(source, pick:, omit:, partial:).apply(definition)
+      end
+
       TypeBuilder.new(definition).instance_eval(&block) if block
       definition
     end

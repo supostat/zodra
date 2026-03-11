@@ -32,8 +32,14 @@ module Zodra
       yield configuration
     end
 
-    def type(name, &block)
+    def type(name, from: nil, pick: nil, omit: nil, partial: false, &block)
       definition = TypeRegistry.global.register(name, kind: :object)
+
+      if from
+        source = TypeRegistry.global.find!(from)
+        TypeDeriver.new(source, pick:, omit:, partial:).apply(definition)
+      end
+
       TypeBuilder.new(definition).instance_eval(&block) if block
       definition
     end

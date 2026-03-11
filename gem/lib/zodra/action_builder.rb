@@ -6,8 +6,13 @@ module Zodra
       @action = action
     end
 
-    def params(&block)
-      TypeBuilder.new(@action.params).instance_eval(&block)
+    def params(from: nil, pick: nil, omit: nil, partial: false, &block)
+      if from
+        source = resolve_type(from)
+        TypeDeriver.new(source, pick:, omit:, partial:).apply(@action.params)
+      end
+
+      TypeBuilder.new(@action.params).instance_eval(&block) if block
     end
 
     def response(type_name = nil, collection: false, &block)
@@ -22,6 +27,12 @@ module Zodra
 
     def error(code, status:)
       @action.add_error(code, status:)
+    end
+
+    private
+
+    def resolve_type(name)
+      @action.contract&.resolve_type(name) || TypeRegistry.global.find!(name)
     end
   end
 end
