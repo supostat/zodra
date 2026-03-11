@@ -53,7 +53,23 @@ module Zodra
       api_definition
     end
 
+    def load_definitions!
+      return unless defined?(Rails)
+
+      TypeRegistry.global.clear!
+      ContractRegistry.global.clear!
+      ApiRegistry.global.clear!
+
+      load_definition_dir(Rails.root.join("app/types"))
+      load_definition_dir(Rails.root.join("app/contracts"))
+      load_definition_dir(Rails.root.join("config/apis"))
+    end
+
     private
+
+    def load_definition_dir(path)
+      Dir[path.join("**/*.rb")].sort.each { |file| load(file) }
+    end
 
     def setup_autoload
       @loader = Zeitwerk::Loader.for_gem.tap do |loader|

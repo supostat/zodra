@@ -7,7 +7,7 @@ module Zodra
     end
 
     def draw(context)
-      load_zodra_definitions!
+      Zodra.load_definitions!
       resolve_action_routes!
 
       ApiRegistry.global.each do |api_definition|
@@ -16,22 +16,6 @@ module Zodra
     end
 
     private
-
-    def load_zodra_definitions!
-      return unless defined?(Rails)
-
-      TypeRegistry.global.clear!
-      ContractRegistry.global.clear!
-      ApiRegistry.global.clear!
-
-      load_dir(Rails.root.join("app/types"))
-      load_dir(Rails.root.join("app/contracts"))
-      load_dir(Rails.root.join("config/apis"))
-    end
-
-    def load_dir(path)
-      Dir[path.join("**/*.rb")].sort.each { |file| load(file) }
-    end
 
     def resolve_action_routes!
       ApiRegistry.global.each do |api_definition|

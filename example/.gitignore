@@ -5,3 +5,4 @@
 /db/*.sqlite3-*
 config/master.key
 config/credentials/*.key
+/app/javascript/types/
