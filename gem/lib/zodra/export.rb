@@ -24,5 +24,12 @@ module Zodra
       parts << mapper.map_contracts(contracts) unless contracts.empty?
       parts.reject(&:empty?).join("\n\n")
     end
+
+    def self.generate_contracts
+      contracts = ContractRegistry.global.to_a
+      api_definitions = ApiRegistry.global.to_a
+
+      ContractMapper.new(api_definitions, contracts).generate
+    end
   end
 end

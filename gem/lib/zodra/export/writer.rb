@@ -25,8 +25,21 @@ module Zodra
         filepath
       end
 
+      def write_contracts
+        content = Export.generate_contracts
+        return if content.empty?
+
+        FileUtils.mkdir_p(@configuration.output_path)
+        filepath = File.join(@configuration.output_path, "contracts.ts")
+        File.write(filepath, content)
+        filepath
+      end
+
       def write_all
-        FORMATS.keys.map { |format| write(format) }
+        paths = FORMATS.keys.map { |format| write(format) }
+        contracts_path = write_contracts
+        paths << contracts_path if contracts_path
+        paths
       end
     end
   end

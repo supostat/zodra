@@ -11,6 +11,7 @@ RSpec.describe Zodra::Export::Writer do
   before do
     Zodra::TypeRegistry.global.clear!
     Zodra::ContractRegistry.global.clear!
+    Zodra::ApiRegistry.global.clear!
     configuration.output_path = output_dir
 
     Zodra.type :user do
@@ -22,6 +23,7 @@ RSpec.describe Zodra::Export::Writer do
   after do
     Zodra::TypeRegistry.global.clear!
     Zodra::ContractRegistry.global.clear!
+    Zodra::ApiRegistry.global.clear!
     FileUtils.rm_rf(output_dir)
   end
 
@@ -63,16 +65,67 @@ RSpec.describe Zodra::Export::Writer do
     end
   end
 
+  describe "#write_contracts" do
+    it "writes contracts.ts when contracts exist" do
+      contract = Zodra.contract :users do
+        action :index do
+          params {}
+          response :user
+        end
+      end
+
+      contract.find_action(:index).tap { |a| a.http_method = :get; a.path = "/users" }
+
+      Zodra.api "/api/v1" do
+        resources :users
+      end
+
+      path = writer.write_contracts
+
+      expect(path).to eq(File.join(output_dir, "contracts.ts"))
+      content = File.read(path)
+      expect(content).to include("UsersContract")
+      expect(content).to include("baseUrl")
+    end
+
+    it "returns nil when no contracts exist" do
+      path = writer.write_contracts
+
+      expect(path).to be_nil
+    end
+  end
+
   describe "#write_all" do
-    it "writes both formats" do
+    it "writes all formats without contracts" do
       paths = writer.write_all
 
       expect(paths).to contain_exactly(
         File.join(output_dir, "schemas.ts"),
         File.join(output_dir, "types.ts")
       )
-      expect(File.exist?(File.join(output_dir, "schemas.ts"))).to be true
-      expect(File.exist?(File.join(output_dir, "types.ts"))).to be true
+    end
+
+    it "includes contracts.ts when contracts exist" do
+      contract = Zodra.contract :users do
+        action :index do
+          params {}
+          response :user
+        end
+      end
+
+      contract.find_action(:index).tap { |a| a.http_method = :get; a.path = "/users" }
+
+      Zodra.api "/api/v1" do
+        resources :users
+      end
+
+      paths = writer.write_all
+
+      expect(paths).to contain_exactly(
+        File.join(output_dir, "schemas.ts"),
+        File.join(output_dir, "types.ts"),
+        File.join(output_dir, "contracts.ts")
+      )
     end
   end
 end
