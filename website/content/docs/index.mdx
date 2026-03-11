@@ -1,0 +1,48 @@
+---
+title: Introduction
+description: Zodra — type-safe API framework for Rails with automatic TypeScript/Zod generation
+---
+
+# Zodra
+
+Zodra is a full API framework for Ruby on Rails that generates TypeScript types and Zod schemas from your Ruby type definitions.
+
+## Why Zodra?
+
+- **Single source of truth** — define types once in Ruby, use them everywhere
+- **Type-safe from backend to frontend** — Ruby types generate Zod schemas and TypeScript types
+- **Full API framework** — contracts, routing, validation, serialization, error handling
+- **Zero drift** — generated code always matches your backend definitions
+
+## Quick Example
+
+```ruby title="app/types/product.rb"
+Zodra.type :product do
+  uuid :id
+  string :name, min: 1, max: 255
+  decimal :price, min: 0
+  string :currency, enum: %w[USD EUR GBP]
+  boolean :in_stock, default: true
+  array :tags, of: :string
+  timestamps
+end
+```
+
+This generates:
+
+```typescript title="zodra/product.ts"
+import { z } from "zod";
+
+export const ProductSchema = z.object({
+  id: z.string().uuid(),
+  name: z.string().min(1).max(255),
+  price: z.number().min(0),
+  currency: z.enum(["USD", "EUR", "GBP"]),
+  in_stock: z.boolean().default(true),
+  tags: z.array(z.string()),
+  created_at: z.string().datetime(),
+  updated_at: z.string().datetime(),
+});
+
+export type Product = z.infer<typeof ProductSchema>;
+```

@@ -56,6 +56,6 @@ Thumbs.db
 # Thought (architecture decisions, local)
 thought/
 
-# Docs build
-docs/.vitepress/dist/
-docs/.vitepress/cache/
+# Website build
+website/.next/
+website/.source/
