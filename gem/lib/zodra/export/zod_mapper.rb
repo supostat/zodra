@@ -4,15 +4,15 @@ module Zodra
   module Export
     class ZodMapper
       PRIMITIVE_MAP = {
-        string: "z.string()",
-        integer: "z.number().int()",
-        decimal: "z.number()",
-        number: "z.number()",
-        boolean: "z.boolean()",
-        datetime: "z.iso.datetime()",
-        date: "z.iso.date()",
-        uuid: "z.uuid()",
-        binary: "z.string()"
+        string: 'z.string()',
+        integer: 'z.number().int()',
+        decimal: 'z.number()',
+        number: 'z.number()',
+        boolean: 'z.boolean()',
+        datetime: 'z.iso.datetime()',
+        date: 'z.iso.date()',
+        uuid: 'z.uuid()',
+        binary: 'z.string()'
       }.freeze
 
       def initialize(key_format: :keep)
@@ -57,7 +57,7 @@ module Zodra
       end
 
       def map_enum(definition)
-        values = definition.values.map { |value| "'#{value}'" }.join(", ")
+        values = definition.values.map { |value| "'#{value}'" }.join(', ')
         "export const #{pascal_case(definition.name)}Schema = z.enum([#{values}]);"
       end
 
@@ -65,9 +65,9 @@ module Zodra
         name = pascal_case(definition.name)
         discriminator_key = transform_key(definition.discriminator)
         variants = definition.variants.map { |variant| map_variant(variant, discriminator_key) }
-        indent = "  "
+        indent = '  '
         body = "z.discriminatedUnion('#{discriminator_key}', [\n" \
-          "#{variants.map { |v| "#{indent}#{v}" }.join(",\n")},\n])"
+               "#{variants.map { |v| "#{indent}#{v}" }.join(",\n")},\n])"
 
         if lazy
           "export const #{name}Schema: z.ZodType<#{name}> = z.lazy(() => #{body});"
@@ -90,13 +90,12 @@ module Zodra
       def map_zod_type(attribute)
         base = resolve_base_type(attribute)
         base = apply_constraints(base, attribute)
-        base = apply_modifiers(base, attribute)
-        base
+        apply_modifiers(base, attribute)
       end
 
       def resolve_base_type(attribute)
         if attribute.enum
-          values = attribute.enum.map { |v| "'#{v}'" }.join(", ")
+          values = attribute.enum.map { |v| "'#{v}'" }.join(', ')
           "z.enum([#{values}])"
         elsif attribute.reference?
           "#{pascal_case(attribute.reference_name)}Schema"
@@ -153,7 +152,7 @@ module Zodra
           action_name = pascal_case(action.name)
           contract_name = pascal_case(contract.name)
 
-          codes = action.errors.values.map { |e| "'#{e[:code]}'" }.join(" | ")
+          codes = action.errors.values.map { |e| "'#{e[:code]}'" }.join(' | ')
           "export type #{action_name}#{contract_name}BusinessError = { code: #{codes}; message: string };"
         end
 
@@ -166,10 +165,13 @@ module Zodra
 
         entries = contract.actions.values.map do |action|
           params_schema = "#{pascal_case(action.name)}#{name}ParamsSchema"
-          parts = ["method: '#{action.http_method.to_s.upcase}' as const", "path: '#{action.path}' as const", "params: #{params_schema}"]
+          parts = ["method: '#{action.http_method.to_s.upcase}' as const", "path: '#{action.path}' as const",
+                   "params: #{params_schema}"]
           parts << "response: #{pascal_case(action.response_type)}Schema" if action.response_type
           if action.errors.any?
-            error_entries = action.errors.values.map { |e| "{ code: '#{e[:code]}' as const, status: #{e[:status]} as const }" }
+            error_entries = action.errors.values.map do |e|
+              "{ code: '#{e[:code]}' as const, status: #{e[:status]} as const }"
+            end
             parts << "errors: [#{error_entries.join(', ')}] as const"
           end
           "  #{action.name}: { #{parts.join(', ')} }"
@@ -181,16 +183,16 @@ module Zodra
       def resolve_primitive_type(type)
         PRIMITIVE_MAP.fetch(type) do
           scalar = ScalarRegistry.global.find(type)
-          scalar ? PRIMITIVE_MAP.fetch(scalar.base, "z.unknown()") : "z.unknown()"
+          scalar ? PRIMITIVE_MAP.fetch(scalar.base, 'z.unknown()') : 'z.unknown()'
         end
       end
 
       def pascal_case(name)
-        name.to_s.split("_").map(&:capitalize).join
+        name.to_s.split('_').map(&:capitalize).join
       end
 
       def camel_case(string)
-        parts = string.split("_")
+        parts = string.split('_')
         parts.first + parts[1..].map(&:capitalize).join
       end
     end

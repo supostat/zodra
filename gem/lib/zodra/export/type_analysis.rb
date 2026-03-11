@@ -10,7 +10,7 @@ module Zodra
       end
 
       def initialize(definitions)
-        @definitions_by_name = definitions.each_with_object({}) { |d, h| h[d.name] = d }
+        @definitions_by_name = definitions.to_h { |d| [d.name, d] }
         @graph = build_graph
       end
 
@@ -112,14 +112,14 @@ module Zodra
           end
         end
 
-        queue = @graph.keys.select { |n| in_degree[n] == 0 }
+        queue = @graph.keys.select { |n| in_degree[n].zero? }
         sorted = []
 
         while (name = queue.shift)
           sorted << name
           reverse_adjacency[name]&.each do |dependent|
             in_degree[dependent] -= 1
-            queue << dependent if in_degree[dependent] == 0
+            queue << dependent if in_degree[dependent].zero?
           end
         end
 

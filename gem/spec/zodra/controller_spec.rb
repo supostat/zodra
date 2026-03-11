@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
-require "spec_helper"
-require "active_support/concern"
+require 'spec_helper'
+require 'active_support/concern'
 
 RSpec.describe Zodra::Controller do
   let(:contract) do
@@ -30,14 +30,15 @@ RSpec.describe Zodra::Controller do
         exceptions.each { |e| @rescue_handlers[e] = block }
       end
 
-      def self.rescue_handlers
-        @rescue_handlers
+      class << self
+        attr_reader :rescue_handlers
       end
 
       def self.wrap_parameters(*); end
-      def self.name = "InvoicesController"
+      def self.name = 'InvoicesController'
 
       include Zodra::Controller
+
       zodra_contract :invoices
 
       attr_accessor :action_name
@@ -69,60 +70,60 @@ RSpec.describe Zodra::Controller do
     Zodra::ContractRegistry.global.clear!
   end
 
-  describe "#zodra_errors" do
-    let(:action_name) { "create" }
+  describe '#zodra_errors' do
+    let(:action_name) { 'create' }
 
-    context "plain hash" do
-      it "renders 422 with field errors" do
-        controller.send(:zodra_errors, { number: ["is already taken"] })
+    context 'plain hash' do
+      it 'renders 422 with field errors' do
+        controller.send(:zodra_errors, { number: ['is already taken'] })
 
         expect(rendered[:status]).to eq(:unprocessable_entity)
-        expect(rendered[:json]).to eq({ errors: { "number" => ["is already taken"] } })
+        expect(rendered[:json]).to eq({ errors: { 'number' => ['is already taken'] } })
       end
 
-      it "renders multiple field errors" do
+      it 'renders multiple field errors' do
         controller.send(:zodra_errors, {
-          number: ["is already taken"],
-          amount: ["must be positive"],
-          base: ["insufficient balance"]
-        })
+                          number: ['is already taken'],
+                          amount: ['must be positive'],
+                          base: ['insufficient balance']
+                        })
 
         expect(rendered[:json][:errors]).to eq({
-          "number" => ["is already taken"],
-          "amount" => ["must be positive"],
-          "base" => ["insufficient balance"]
-        })
+                                                 'number' => ['is already taken'],
+                                                 'amount' => ['must be positive'],
+                                                 'base' => ['insufficient balance']
+                                               })
       end
     end
 
-    context "ActiveModel::Errors compatible" do
-      it "converts objects responding to #messages" do
-        error_object = double("errors", messages: { number: ["taken"] })
+    context 'ActiveModel::Errors compatible' do
+      it 'converts objects responding to #messages' do
+        error_object = double('errors', messages: { number: ['taken'] })
 
         controller.send(:zodra_errors, error_object)
 
-        expect(rendered[:json][:errors]).to eq({ "number" => ["taken"] })
+        expect(rendered[:json][:errors]).to eq({ 'number' => ['taken'] })
       end
 
-      it "converts objects responding to #to_hash" do
-        error_object = double("errors", to_hash: { amount: ["negative"] })
+      it 'converts objects responding to #to_hash' do
+        error_object = double('errors', to_hash: { amount: ['negative'] })
 
         controller.send(:zodra_errors, error_object)
 
-        expect(rendered[:json][:errors]).to eq({ "amount" => ["negative"] })
+        expect(rendered[:json][:errors]).to eq({ 'amount' => ['negative'] })
       end
     end
 
-    context "custom status" do
-      it "allows overriding status" do
-        controller.send(:zodra_errors, { base: ["conflict"] }, status: :conflict)
+    context 'custom status' do
+      it 'allows overriding status' do
+        controller.send(:zodra_errors, { base: ['conflict'] }, status: :conflict)
 
         expect(rendered[:status]).to eq(:conflict)
       end
     end
 
-    context "key transformation" do
-      it "transforms keys to camelCase by default" do
+    context 'key transformation' do
+      it 'transforms keys to camelCase by default' do
         Zodra.contract(:line_items) do
           action :create do
             params do
@@ -135,92 +136,92 @@ RSpec.describe Zodra::Controller do
         klass = controller_class
         klass.zodra_contract :line_items
         ctrl = klass.new
-        ctrl.action_name = "create"
+        ctrl.action_name = 'create'
 
-        ctrl.send(:zodra_errors, { first_name: ["required"], last_name: ["required"] })
+        ctrl.send(:zodra_errors, { first_name: ['required'], last_name: ['required'] })
 
         expect(rendered[:json][:errors]).to eq({
-          "firstName" => ["required"],
-          "lastName" => ["required"]
-        })
+                                                 'firstName' => ['required'],
+                                                 'lastName' => ['required']
+                                               })
       end
 
-      it "keeps keys when key_format is :keep" do
+      it 'keeps keys when key_format is :keep' do
         original_format = Zodra.configuration.key_format
         Zodra.configuration.key_format = :keep
 
-        controller.send(:zodra_errors, { number: ["taken"] })
+        controller.send(:zodra_errors, { number: ['taken'] })
 
-        expect(rendered[:json][:errors]).to eq({ number: ["taken"] })
+        expect(rendered[:json][:errors]).to eq({ number: ['taken'] })
       ensure
         Zodra.configuration.key_format = original_format
       end
     end
   end
 
-  describe "error key validation" do
-    let(:action_name) { "create" }
+  describe 'error key validation' do
+    let(:action_name) { 'create' }
 
-    context "in non-production environment" do
+    context 'in non-production environment' do
       before do
-        stub_const("Rails", double("Rails", env: double("env", production?: false)))
+        stub_const('Rails', double('Rails', env: double('env', production?: false)))
       end
 
-      it "raises on unknown error keys" do
-        expect {
-          controller.send(:zodra_errors, { naem: ["required"] })
-        }.to raise_error(Zodra::Error, /Unknown error keys \[:naem\].*Valid keys:.*:number.*:amount.*:base/)
+      it 'raises on unknown error keys' do
+        expect do
+          controller.send(:zodra_errors, { naem: ['required'] })
+        end.to raise_error(Zodra::Error, /Unknown error keys \[:naem\].*Valid keys:.*:number.*:amount.*:base/)
       end
 
-      it "accepts valid param keys" do
-        expect {
-          controller.send(:zodra_errors, { number: ["taken"], amount: ["negative"] })
-        }.not_to raise_error
+      it 'accepts valid param keys' do
+        expect do
+          controller.send(:zodra_errors, { number: ['taken'], amount: ['negative'] })
+        end.not_to raise_error
       end
 
-      it "accepts :base key" do
-        expect {
-          controller.send(:zodra_errors, { base: ["something went wrong"] })
-        }.not_to raise_error
+      it 'accepts :base key' do
+        expect do
+          controller.send(:zodra_errors, { base: ['something went wrong'] })
+        end.not_to raise_error
       end
 
-      it "reports all unknown keys" do
-        expect {
-          controller.send(:zodra_errors, { foo: ["bad"], bar: ["worse"] })
-        }.to raise_error(Zodra::Error, /\[:foo, :bar\]/)
+      it 'reports all unknown keys' do
+        expect do
+          controller.send(:zodra_errors, { foo: ['bad'], bar: ['worse'] })
+        end.to raise_error(Zodra::Error, /\[:foo, :bar\]/)
       end
     end
 
-    context "in production environment" do
+    context 'in production environment' do
       before do
-        stub_const("Rails", double("Rails", env: double("env", production?: true)))
+        stub_const('Rails', double('Rails', env: double('env', production?: true)))
       end
 
-      it "logs warning but still renders" do
-        logger = instance_double("Logger")
+      it 'logs warning but still renders' do
+        logger = instance_double(Logger)
         allow(Zodra).to receive(:logger).and_return(logger)
         allow(logger).to receive(:warn)
 
-        controller.send(:zodra_errors, { typo: ["error"] })
+        controller.send(:zodra_errors, { typo: ['error'] })
 
         expect(logger).to have_received(:warn).with(/Unknown error keys \[:typo\]/)
-        expect(rendered[:json][:errors]).to have_key("typo")
+        expect(rendered[:json][:errors]).to have_key('typo')
       end
     end
 
-    context "action without params" do
-      let(:action_name) { "index" }
+    context 'action without params' do
+      let(:action_name) { 'index' }
 
-      it "skips validation when no params defined" do
-        expect {
-          controller.send(:zodra_errors, { anything: ["ok"] })
-        }.not_to raise_error
+      it 'skips validation when no params defined' do
+        expect do
+          controller.send(:zodra_errors, { anything: ['ok'] })
+        end.not_to raise_error
       end
     end
   end
 
-  describe "error DSL" do
-    it "stores error definitions on action" do
+  describe 'error DSL' do
+    it 'stores error definitions on action' do
       Zodra.contract(:orders) do
         action :create do
           params do
@@ -239,15 +240,15 @@ RSpec.describe Zodra::Controller do
       expect(action.errors[:insufficient_balance]).to eq({ code: :insufficient_balance, status: 422 })
     end
 
-    it "find_error returns nil for unknown codes" do
+    it 'find_error returns nil for unknown codes' do
       action = contract.find_action(:create)
 
       expect(action.find_error(:nonexistent)).to be_nil
     end
   end
 
-  describe ".zodra_rescue" do
-    let(:action_name) { "create" }
+  describe '.zodra_rescue' do
+    let(:action_name) { 'create' }
 
     let(:contract) do
       Zodra.contract(:invoices) do
@@ -273,57 +274,57 @@ RSpec.describe Zodra::Controller do
       Class.new(StandardError)
     end
 
-    it "renders business error with code and message" do
+    it 'renders business error with code and message' do
       controller_class.zodra_rescue :create, already_finalized_error, as: :already_finalized
 
-      exception = already_finalized_error.new("Invoice is already finalized")
+      exception = already_finalized_error.new('Invoice is already finalized')
       controller.rescue_with_handler(exception)
 
       expect(rendered[:status]).to eq(409)
       expect(rendered[:json]).to eq({
-        error: { code: "already_finalized", message: "Invoice is already finalized" }
-      })
+                                      error: { code: 'already_finalized', message: 'Invoice is already finalized' }
+                                    })
     end
 
-    it "uses status from error definition in contract" do
+    it 'uses status from error definition in contract' do
       controller_class.zodra_rescue :create, insufficient_balance_error, as: :insufficient_balance
 
-      exception = insufficient_balance_error.new("Not enough funds")
+      exception = insufficient_balance_error.new('Not enough funds')
       controller.rescue_with_handler(exception)
 
       expect(rendered[:status]).to eq(422)
-      expect(rendered[:json][:error][:code]).to eq("insufficient_balance")
+      expect(rendered[:json][:error][:code]).to eq('insufficient_balance')
     end
 
-    it "re-raises if exception does not match current action" do
+    it 're-raises if exception does not match current action' do
       controller_class.zodra_rescue :index, already_finalized_error, as: :already_finalized
 
-      exception = already_finalized_error.new("wrong action")
+      exception = already_finalized_error.new('wrong action')
 
-      expect {
+      expect do
         controller.send(:handle_zodra_business_error, exception)
-      }.to raise_error(already_finalized_error, "wrong action")
+      end.to raise_error(already_finalized_error, 'wrong action')
     end
 
-    it "falls back to 500 if error code not in contract" do
+    it 'falls back to 500 if error code not in contract' do
       unmapped_error = Class.new(StandardError)
       controller_class.zodra_rescue :create, unmapped_error, as: :unknown_code
 
-      exception = unmapped_error.new("something broke")
+      exception = unmapped_error.new('something broke')
       controller.rescue_with_handler(exception)
 
       expect(rendered[:status]).to eq(:internal_server_error)
-      expect(rendered[:json][:error][:code]).to eq("unknown_code")
+      expect(rendered[:json][:error][:code]).to eq('unknown_code')
     end
 
-    it "handles multiple error mappings for same action" do
+    it 'handles multiple error mappings for same action' do
       controller_class.zodra_rescue :create, already_finalized_error, as: :already_finalized
       controller_class.zodra_rescue :create, insufficient_balance_error, as: :insufficient_balance
 
-      exception = insufficient_balance_error.new("No funds")
+      exception = insufficient_balance_error.new('No funds')
       controller.rescue_with_handler(exception)
 
-      expect(rendered[:json][:error][:code]).to eq("insufficient_balance")
+      expect(rendered[:json][:error][:code]).to eq('insufficient_balance')
       expect(rendered[:status]).to eq(422)
     end
   end

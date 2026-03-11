@@ -14,11 +14,11 @@ module Zodra
     end
 
     def namespaces
-      @base_path.split("/").reject(&:empty?).map(&:to_sym)
+      @base_path.split('/').reject(&:empty?).map(&:to_sym)
     end
 
     def controller_namespace
-      namespaces.map(&:to_s).join("/")
+      namespaces.join('/')
     end
   end
 end

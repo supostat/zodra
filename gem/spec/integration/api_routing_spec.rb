@@ -1,25 +1,25 @@
 # frozen_string_literal: true
 
-RSpec.describe "API routing", :acceptance do
+RSpec.describe 'API routing', :acceptance do
   before do
     Zodra::TypeRegistry.global.clear!
     Zodra::ContractRegistry.global.clear!
     Zodra::ApiRegistry.global.clear!
   end
 
-  it "defines API with resources via DSL" do
-    api = Zodra.api "/api/v1" do
+  it 'defines API with resources via DSL' do
+    api = Zodra.api '/api/v1' do
       resources :invoices
       resources :customers
     end
 
-    expect(api.base_path).to eq("/api/v1")
+    expect(api.base_path).to eq('/api/v1')
     expect(api.resources.size).to eq(2)
     expect(api.resources.map(&:name)).to eq(%i[invoices customers])
   end
 
-  it "defines singular resource" do
-    api = Zodra.api "/api/v1" do
+  it 'defines singular resource' do
+    api = Zodra.api '/api/v1' do
       resource :profile
     end
 
@@ -28,8 +28,8 @@ RSpec.describe "API routing", :acceptance do
     expect(profile.crud_actions).not_to include(:index)
   end
 
-  it "defines resources with only/except" do
-    api = Zodra.api "/api/v1" do
+  it 'defines resources with only/except' do
+    api = Zodra.api '/api/v1' do
       resources :invoices, only: %i[index show]
       resources :customers, except: %i[destroy]
     end
@@ -41,8 +41,8 @@ RSpec.describe "API routing", :acceptance do
     expect(customers.crud_actions).to eq(%i[index show create update])
   end
 
-  it "defines resources with custom member and collection actions" do
-    api = Zodra.api "/api/v1" do
+  it 'defines resources with custom member and collection actions' do
+    api = Zodra.api '/api/v1' do
       resources :invoices do
         member do
           patch :void
@@ -55,15 +55,14 @@ RSpec.describe "API routing", :acceptance do
     end
 
     resource = api.resources.first
-    member_actions = resource.custom_actions.select { |a| a[:member] }
-    collection_actions = resource.custom_actions.reject { |a| a[:member] }
+    member_actions, collection_actions = resource.custom_actions.partition { |a| a[:member] }
 
     expect(member_actions.map { |a| a[:name] }).to eq(%i[void send_invoice])
     expect(collection_actions.map { |a| a[:name] }).to eq([:search])
   end
 
-  it "defines nested resources" do
-    api = Zodra.api "/api/v1" do
+  it 'defines nested resources' do
+    api = Zodra.api '/api/v1' do
       resources :invoices do
         resources :items
       end
@@ -74,15 +73,15 @@ RSpec.describe "API routing", :acceptance do
     expect(invoices.children.first.name).to eq(:items)
   end
 
-  it "uses explicit contract name" do
-    api = Zodra.api "/api/v1" do
+  it 'uses explicit contract name' do
+    api = Zodra.api '/api/v1' do
       resources :invoices, contract: :billing_invoices
     end
 
     expect(api.resources.first.contract_name).to eq(:billing_invoices)
   end
 
-  it "resolves action routes from API + contract" do
+  it 'resolves action routes from API + contract' do
     Zodra.contract :invoices do
       action :index do
         response(collection: true) do
@@ -116,7 +115,7 @@ RSpec.describe "API routing", :acceptance do
       end
     end
 
-    Zodra.api "/api/v1" do
+    Zodra.api '/api/v1' do
       resources :invoices do
         member { patch :void }
         collection { get :search }
@@ -129,26 +128,26 @@ RSpec.describe "API routing", :acceptance do
 
     index = contract.find_action(:index)
     expect(index.http_method).to eq(:get)
-    expect(index.path).to eq("/api/v1/invoices")
+    expect(index.path).to eq('/api/v1/invoices')
 
     create = contract.find_action(:create)
     expect(create.http_method).to eq(:post)
-    expect(create.path).to eq("/api/v1/invoices")
+    expect(create.path).to eq('/api/v1/invoices')
 
     show = contract.find_action(:show)
     expect(show.http_method).to eq(:get)
-    expect(show.path).to eq("/api/v1/invoices/:id")
+    expect(show.path).to eq('/api/v1/invoices/:id')
 
     void = contract.find_action(:void)
     expect(void.http_method).to eq(:patch)
-    expect(void.path).to eq("/api/v1/invoices/:id/void")
+    expect(void.path).to eq('/api/v1/invoices/:id/void')
 
     search = contract.find_action(:search)
     expect(search.http_method).to eq(:get)
-    expect(search.path).to eq("/api/v1/invoices/search")
+    expect(search.path).to eq('/api/v1/invoices/search')
   end
 
-  it "resolves nested resource action routes" do
+  it 'resolves nested resource action routes' do
     Zodra.contract :items do
       action :index do
         response(collection: true) do
@@ -161,7 +160,7 @@ RSpec.describe "API routing", :acceptance do
       end
     end
 
-    Zodra.api "/api/v1" do
+    Zodra.api '/api/v1' do
       resources :invoices do
         resources :items
       end
@@ -173,10 +172,10 @@ RSpec.describe "API routing", :acceptance do
 
     index = contract.find_action(:index)
     expect(index.http_method).to eq(:get)
-    expect(index.path).to eq("/api/v1/invoices/:invoice_id/items")
+    expect(index.path).to eq('/api/v1/invoices/:invoice_id/items')
 
     create = contract.find_action(:create)
     expect(create.http_method).to eq(:post)
-    expect(create.path).to eq("/api/v1/invoices/:invoice_id/items")
+    expect(create.path).to eq('/api/v1/invoices/:invoice_id/items')
   end
 end

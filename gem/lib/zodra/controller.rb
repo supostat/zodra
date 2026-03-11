@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require "active_support/concern"
+require 'active_support/concern'
 
 module Zodra
   module Controller
@@ -74,7 +74,8 @@ module Zodra
 
     def zodra_action
       @zodra_action ||= zodra_contract.find_action(action_name) ||
-        raise(Zodra::Error, "Action :#{action_name} not found in contract :#{self.class.zodra_contract_name}")
+                        raise(Zodra::Error,
+                              "Action :#{action_name} not found in contract :#{self.class.zodra_contract_name}")
     end
 
     def zodra_contract
@@ -87,13 +88,11 @@ module Zodra
     end
 
     def handle_zodra_business_error(exception)
-      mapping = self.class.zodra_rescue_mappings.find { |m|
+      mapping = self.class.zodra_rescue_mappings.find do |m|
         m[:action_name] == action_name.to_sym && exception.is_a?(m[:exception_class])
-      }
-
-      unless mapping
-        raise exception
       end
+
+      raise exception unless mapping
 
       error_definition = zodra_action.find_error(mapping[:code])
       status = error_definition ? error_definition[:status] : :internal_server_error
@@ -120,11 +119,9 @@ module Zodra
       message = "Unknown error keys #{unknown_keys.inspect} for action :#{action_name}. " \
                 "Valid keys: #{valid_error_keys_for_action.inspect}"
 
-      if defined?(Rails) && !Rails.env.production?
-        raise Zodra::Error, message
-      else
-        Zodra.logger&.warn("[Zodra] #{message}")
-      end
+      raise Zodra::Error, message if defined?(Rails) && !Rails.env.production?
+
+      Zodra.logger&.warn("[Zodra] #{message}")
     end
 
     def valid_error_keys_for_action

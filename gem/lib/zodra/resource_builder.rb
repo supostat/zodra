@@ -8,12 +8,12 @@ module Zodra
       @resource = resource
     end
 
-    def member(&block)
-      MemberContext.new(@resource).instance_eval(&block)
+    def member(&)
+      MemberContext.new(@resource).instance_eval(&)
     end
 
-    def collection(&block)
-      CollectionContext.new(@resource).instance_eval(&block)
+    def collection(&)
+      CollectionContext.new(@resource).instance_eval(&)
     end
 
     def resources(name, contract: nil, controller: nil, only: nil, except: nil, &block)

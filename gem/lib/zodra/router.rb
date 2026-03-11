@@ -34,8 +34,7 @@ module Zodra
       options = { only: resource.crud_actions }
       options[:controller] = resource.controller_name if resource.controller_name
 
-      member_actions = resource.custom_actions.select { |a| a[:member] }
-      collection_actions = resource.custom_actions.reject { |a| a[:member] }
+      member_actions, collection_actions = resource.custom_actions.partition { |a| a[:member] }
       children = resource.children
 
       context.send(resource_method, resource.name, **options) do

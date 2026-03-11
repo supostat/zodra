@@ -3,9 +3,9 @@
 module Zodra
   class Configuration
     DEFAULTS = {
-      output_path: "app/javascript/types",
+      output_path: 'app/javascript/types',
       key_format: :camel,
-      zod_import: "zod",
+      zod_import: 'zod',
       strict_params: true
     }.freeze
 

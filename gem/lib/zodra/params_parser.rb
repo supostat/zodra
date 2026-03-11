@@ -40,7 +40,7 @@ module Zodra
       errors = {}
 
       unknown_keys.each do |key|
-        errors[key] = ["is not allowed"]
+        errors[key] = ['is not allowed']
       end
 
       errors
@@ -66,11 +66,11 @@ module Zodra
 
         value = params[attr_name]
 
-        if value.nil? && attribute.nullable?
-          coerced[attr_name] = nil
-        else
-          coerced[attr_name] = ParamsCoercer.call(value, attribute.type, of: attribute.of)
-        end
+        coerced[attr_name] = if value.nil? && attribute.nullable?
+                               nil
+                             else
+                               ParamsCoercer.call(value, attribute.type, of: attribute.of)
+                             end
       end
 
       coerced

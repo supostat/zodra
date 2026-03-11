@@ -25,8 +25,8 @@ module Zodra
       kind == :union
     end
 
-    def add_attribute(attribute_name, **options)
-      @attributes[attribute_name.to_sym] = Attribute.new(name: attribute_name, **options)
+    def add_attribute(attribute_name, **)
+      @attributes[attribute_name.to_sym] = Attribute.new(name: attribute_name, **)
     end
 
     def add_variant(tag, attributes: {})

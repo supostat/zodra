@@ -1,12 +1,12 @@
 # frozen_string_literal: true
 
-RSpec.describe "Action response definition" do
+RSpec.describe 'Action response definition' do
   before do
     Zodra::ContractRegistry.global.clear!
     Zodra::TypeRegistry.global.clear!
   end
 
-  it "defines inline response with block" do
+  it 'defines inline response with block' do
     contract = Zodra.contract :invoices do
       action :show do
         response do
@@ -22,7 +22,7 @@ RSpec.describe "Action response definition" do
     expect(schema.attributes.keys).to eq(%i[number amount])
   end
 
-  it "references global type with symbol" do
+  it 'references global type with symbol' do
     Zodra.type :invoice do
       string :number
     end
@@ -39,7 +39,7 @@ RSpec.describe "Action response definition" do
     expect(schema.attributes.keys).to eq([:number])
   end
 
-  it "references contract-scoped type with symbol" do
+  it 'references contract-scoped type with symbol' do
     contract = Zodra.contract :invoices do
       type :invoice do
         string :number
@@ -57,7 +57,7 @@ RSpec.describe "Action response definition" do
     expect(schema.attributes.keys).to eq(%i[number amount])
   end
 
-  it "marks action as collection" do
+  it 'marks action as collection' do
     contract = Zodra.contract :invoices do
       action :index do
         response(collection: true) do
@@ -71,7 +71,7 @@ RSpec.describe "Action response definition" do
     expect(action.collection?).to be true
   end
 
-  it "defaults to non-collection" do
+  it 'defaults to non-collection' do
     contract = Zodra.contract :invoices do
       action :show do
         response do
@@ -84,7 +84,7 @@ RSpec.describe "Action response definition" do
     expect(action.collection?).to be false
   end
 
-  it "supports compound response with references" do
+  it 'supports compound response with references' do
     Zodra.type :rota_shift do
       string :date
       string :employee

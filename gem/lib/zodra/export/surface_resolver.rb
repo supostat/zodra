@@ -10,7 +10,7 @@ module Zodra
       end
 
       def initialize(definitions, contracts)
-        @definitions_by_name = definitions.each_with_object({}) { |d, h| h[d.name] = d }
+        @definitions_by_name = definitions.to_h { |d| [d.name, d] }
         @contracts = contracts
       end
 

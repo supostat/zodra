@@ -19,8 +19,8 @@ RSpec.describe Zodra::Export::SurfaceResolver do
     Zodra::ContractRegistry.global.to_a
   end
 
-  describe ".call" do
-    it "returns all definitions when no contracts exist" do
+  describe '.call' do
+    it 'returns all definitions when no contracts exist' do
       Zodra.type(:customer) { string :name }
       Zodra.type(:invoice) { string :number }
 
@@ -29,12 +29,12 @@ RSpec.describe Zodra::Export::SurfaceResolver do
       expect(result.map(&:name)).to contain_exactly(:customer, :invoice)
     end
 
-    it "filters to types reachable from contract response" do
+    it 'filters to types reachable from contract response' do
       Zodra.type(:customer) { string :name }
       Zodra.type(:invoice) { string :number }
       Zodra.type(:unused) { string :data }
 
-      contract = Zodra.contract :invoices do
+      Zodra.contract :invoices do
         action :show do
           params { uuid :id }
           response :invoice
@@ -46,7 +46,7 @@ RSpec.describe Zodra::Export::SurfaceResolver do
       expect(result.map(&:name)).to contain_exactly(:invoice)
     end
 
-    it "follows reference dependencies recursively" do
+    it 'follows reference dependencies recursively' do
       Zodra.type(:address) { string :city }
       Zodra.type(:customer) do
         string :name
@@ -69,7 +69,7 @@ RSpec.describe Zodra::Export::SurfaceResolver do
       expect(result.map(&:name)).to contain_exactly(:invoice, :customer, :address)
     end
 
-    it "follows array of dependencies" do
+    it 'follows array of dependencies' do
       Zodra.type(:item) { string :description }
       Zodra.type(:invoice) do
         string :number
@@ -88,7 +88,7 @@ RSpec.describe Zodra::Export::SurfaceResolver do
       expect(result.map(&:name)).to contain_exactly(:invoice, :item)
     end
 
-    it "collects types from params references" do
+    it 'collects types from params references' do
       Zodra.type(:filter) { string :query }
       Zodra.type(:invoice) { string :number }
 
@@ -103,7 +103,7 @@ RSpec.describe Zodra::Export::SurfaceResolver do
       expect(result.map(&:name)).to include(:filter)
     end
 
-    it "collects types from inline response definitions" do
+    it 'collects types from inline response definitions' do
       Zodra.type(:customer) { string :name }
       Zodra.type(:unused) { string :data }
 
@@ -121,7 +121,7 @@ RSpec.describe Zodra::Export::SurfaceResolver do
       expect(result.map(&:name)).to contain_exactly(:customer)
     end
 
-    it "preserves original definition order" do
+    it 'preserves original definition order' do
       Zodra.type(:address) { string :city }
       Zodra.type(:customer) do
         string :name
@@ -141,7 +141,7 @@ RSpec.describe Zodra::Export::SurfaceResolver do
       expect(result.map(&:name)).to eq(%i[address customer invoice])
     end
 
-    it "handles union types referenced from contracts" do
+    it 'handles union types referenced from contracts' do
       Zodra.union :payment_method, discriminator: :type do
         variant :card do
           string :last_four

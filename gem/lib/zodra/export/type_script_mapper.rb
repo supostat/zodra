@@ -4,15 +4,15 @@ module Zodra
   module Export
     class TypeScriptMapper
       PRIMITIVE_MAP = {
-        string: "string",
-        integer: "number",
-        decimal: "number",
-        number: "number",
-        boolean: "boolean",
-        datetime: "string",
-        date: "string",
-        uuid: "string",
-        binary: "string"
+        string: 'string',
+        integer: 'number',
+        decimal: 'number',
+        number: 'number',
+        boolean: 'boolean',
+        datetime: 'string',
+        date: 'string',
+        uuid: 'string',
+        binary: 'string'
       }.freeze
 
       def initialize(key_format: :keep)
@@ -49,7 +49,7 @@ module Zodra
       end
 
       def map_enum(definition)
-        values = definition.values.map { |value| "'#{value}'" }.join(" | ")
+        values = definition.values.map { |value| "'#{value}'" }.join(' | ')
         "export type #{pascal_case(definition.name)} = #{values};"
       end
 
@@ -69,15 +69,15 @@ module Zodra
 
       def map_property(attribute)
         key = transform_key(attribute.name)
-        optional_marker = attribute.optional? ? "?" : ""
+        optional_marker = attribute.optional? ? '?' : ''
         type_string = map_type(attribute)
-        type_string = [type_string, "null"].sort.join(" | ") if attribute.nullable?
+        type_string = [type_string, 'null'].sort.join(' | ') if attribute.nullable?
         "  #{key}#{optional_marker}: #{type_string};"
       end
 
       def map_type(attribute)
         if attribute.enum
-          attribute.enum.map { |v| "'#{v}'" }.join(" | ")
+          attribute.enum.map { |v| "'#{v}'" }.join(' | ')
         elsif attribute.reference?
           pascal_case(attribute.reference_name)
         elsif attribute.array?
@@ -122,20 +122,20 @@ module Zodra
       def resolve_primitive_type(type)
         PRIMITIVE_MAP.fetch(type) do
           scalar = ScalarRegistry.global.find(type)
-          scalar ? PRIMITIVE_MAP.fetch(scalar.base, "unknown") : "unknown"
+          scalar ? PRIMITIVE_MAP.fetch(scalar.base, 'unknown') : 'unknown'
         end
       end
 
       def pascal_case(name)
-        name.to_s.split("_").map(&:capitalize).join
+        name.to_s.split('_').map(&:capitalize).join
       end
 
       def pascal_case_string(string)
-        string.split("_").map(&:capitalize).join
+        string.split('_').map(&:capitalize).join
       end
 
       def camel_case(string)
-        parts = string.split("_")
+        parts = string.split('_')
         parts.first + parts[1..].map(&:capitalize).join
       end
     end

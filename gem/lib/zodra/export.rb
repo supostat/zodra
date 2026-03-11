@@ -7,7 +7,7 @@ module Zodra
       zod: ZodMapper
     }.freeze
 
-    def self.generate(format, key_format: :camel, zod_import: "zod")
+    def self.generate(format, key_format: :camel, zod_import: 'zod')
       mapper_class = MAPPERS.fetch(format) do
         raise ConfigurationError, "Unknown export format: #{format}. Available: #{MAPPERS.keys.join(', ')}"
       end

@@ -22,8 +22,8 @@ module Zodra
       @store[base_path]
     end
 
-    def each(&block)
-      @store.each_value(&block)
+    def each(&)
+      @store.each_value(&)
     end
 
     def clear!

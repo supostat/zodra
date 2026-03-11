@@ -1,136 +1,136 @@
 # frozen_string_literal: true
 
-require "bigdecimal"
+require 'bigdecimal'
 
 RSpec.describe Zodra::ParamsValidator do
-  describe ".call" do
-    it "returns empty hash for valid params" do
+  describe '.call' do
+    it 'returns empty hash for valid params' do
       schema = build_schema(name: { type: :string })
-      errors = described_class.call({ name: "John" }, schema:)
+      errors = described_class.call({ name: 'John' }, schema:)
 
       expect(errors).to be_empty
     end
 
-    it "returns error for missing required param" do
+    it 'returns error for missing required param' do
       schema = build_schema(name: { type: :string })
       errors = described_class.call({}, schema:)
 
-      expect(errors[:name]).to include("is required")
+      expect(errors[:name]).to include('is required')
     end
 
-    it "skips required check for optional params" do
+    it 'skips required check for optional params' do
       schema = build_schema(name: { type: :string, optional: true })
       errors = described_class.call({}, schema:)
 
       expect(errors).to be_empty
     end
 
-    it "returns error for coercion failure" do
+    it 'returns error for coercion failure' do
       schema = build_schema(age: { type: :integer })
       errors = described_class.call({ age: :coercion_error }, schema:)
 
-      expect(errors[:age]).to include("is not a valid integer")
+      expect(errors[:age]).to include('is not a valid integer')
     end
 
-    it "validates string min length" do
+    it 'validates string min length' do
       schema = build_schema(name: { type: :string, min: 3 })
-      errors = described_class.call({ name: "AB" }, schema:)
+      errors = described_class.call({ name: 'AB' }, schema:)
 
-      expect(errors[:name]).to include("is too short (minimum is 3 characters)")
+      expect(errors[:name]).to include('is too short (minimum is 3 characters)')
     end
 
-    it "validates string max length" do
+    it 'validates string max length' do
       schema = build_schema(name: { type: :string, max: 5 })
-      errors = described_class.call({ name: "ABCDEF" }, schema:)
+      errors = described_class.call({ name: 'ABCDEF' }, schema:)
 
-      expect(errors[:name]).to include("is too long (maximum is 5 characters)")
+      expect(errors[:name]).to include('is too long (maximum is 5 characters)')
     end
 
-    it "validates numeric min value" do
+    it 'validates numeric min value' do
       schema = build_schema(amount: { type: :decimal, min: 0 })
-      errors = described_class.call({ amount: BigDecimal("-1") }, schema:)
+      errors = described_class.call({ amount: BigDecimal('-1') }, schema:)
 
-      expect(errors[:amount]).to include("must be greater than or equal to 0")
+      expect(errors[:amount]).to include('must be greater than or equal to 0')
     end
 
-    it "validates numeric max value" do
+    it 'validates numeric max value' do
       schema = build_schema(quantity: { type: :integer, max: 100 })
       errors = described_class.call({ quantity: 101 }, schema:)
 
-      expect(errors[:quantity]).to include("must be less than or equal to 100")
+      expect(errors[:quantity]).to include('must be less than or equal to 100')
     end
 
-    it "allows nil for nullable params" do
+    it 'allows nil for nullable params' do
       schema = build_schema(bio: { type: :string, nullable: true })
       errors = described_class.call({ bio: nil }, schema:)
 
       expect(errors).to be_empty
     end
 
-    it "returns error for nil on non-nullable param" do
+    it 'returns error for nil on non-nullable param' do
       schema = build_schema(name: { type: :string })
       errors = described_class.call({ name: nil }, schema:)
 
-      expect(errors[:name]).to include("is required")
+      expect(errors[:name]).to include('is required')
     end
 
-    it "validates integer min/max as numeric" do
+    it 'validates integer min/max as numeric' do
       schema = build_schema(page: { type: :integer, min: 1, max: 100 })
       errors = described_class.call({ page: 0 }, schema:)
 
-      expect(errors[:page]).to include("must be greater than or equal to 1")
+      expect(errors[:page]).to include('must be greater than or equal to 1')
     end
 
-    it "validates number min/max as numeric" do
+    it 'validates number min/max as numeric' do
       schema = build_schema(price: { type: :number, min: 0.01 })
       errors = described_class.call({ price: 0.0 }, schema:)
 
-      expect(errors[:price]).to include("must be greater than or equal to 0.01")
+      expect(errors[:price]).to include('must be greater than or equal to 0.01')
     end
 
-    it "validates enum inclusion" do
+    it 'validates enum inclusion' do
       schema = build_schema(currency: { type: :string, enum: %w[USD EUR GBP] })
-      errors = described_class.call({ currency: "JPY" }, schema:)
+      errors = described_class.call({ currency: 'JPY' }, schema:)
 
-      expect(errors[:currency]).to include("is not included in the list")
+      expect(errors[:currency]).to include('is not included in the list')
     end
 
-    it "passes valid enum value" do
+    it 'passes valid enum value' do
       schema = build_schema(currency: { type: :string, enum: %w[USD EUR GBP] })
-      errors = described_class.call({ currency: "USD" }, schema:)
+      errors = described_class.call({ currency: 'USD' }, schema:)
 
       expect(errors).to be_empty
     end
 
-    it "collects multiple errors per field" do
+    it 'collects multiple errors per field' do
       schema = build_schema(name: { type: :string })
       errors = described_class.call({ name: :coercion_error }, schema:)
 
       expect(errors[:name]).to be_an(Array)
     end
 
-    it "skips constraint checks on coercion error" do
+    it 'skips constraint checks on coercion error' do
       schema = build_schema(name: { type: :string, min: 3 })
       errors = described_class.call({ name: :coercion_error }, schema:)
 
-      expect(errors[:name]).to eq(["is not a valid string"])
+      expect(errors[:name]).to eq(['is not a valid string'])
     end
 
-    it "treats param with default: false as optional" do
+    it 'treats param with default: false as optional' do
       schema = build_schema(active: { type: :boolean, default: false })
       errors = described_class.call({}, schema:)
 
       expect(errors).to be_empty
     end
 
-    it "treats param with default: 0 as optional" do
+    it 'treats param with default: 0 as optional' do
       schema = build_schema(page: { type: :integer, default: 0 })
       errors = described_class.call({}, schema:)
 
       expect(errors).to be_empty
     end
 
-    it "skips absent optional param constraints" do
+    it 'skips absent optional param constraints' do
       schema = build_schema(nickname: { type: :string, optional: true, min: 2 })
       errors = described_class.call({}, schema:)
 

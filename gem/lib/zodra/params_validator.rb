@@ -22,7 +22,7 @@ module Zodra
       if !present || (value.nil? && !attribute.nullable?)
         return if (attribute.optional? || !attribute.default.nil?) && !present
 
-        errors[attr_name] = ["is required"]
+        errors[attr_name] = ['is required']
         return
       end
 
@@ -42,7 +42,7 @@ module Zodra
 
       if attribute.enum
         allowed = attribute.enum.map(&:to_s)
-        field_errors << "is not included in the list" unless allowed.include?(value.to_s)
+        field_errors << 'is not included in the list' unless allowed.include?(value.to_s)
       end
 
       if attribute.min

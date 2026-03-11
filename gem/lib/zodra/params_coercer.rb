@@ -1,8 +1,8 @@
 # frozen_string_literal: true
 
-require "bigdecimal"
-require "time"
-require "date"
+require 'bigdecimal'
+require 'time'
+require 'date'
 
 module Zodra
   module ParamsCoercer
@@ -56,7 +56,7 @@ module Zodra
     end
 
     def self.coerce_boolean(value)
-      return value if value == true || value == false
+      return value if [true, false].include?(value)
 
       string = value.to_s.downcase
       return true if TRUE_VALUES.include?(string)

@@ -31,8 +31,8 @@ module Zodra
       @store.key?(name.to_sym)
     end
 
-    def each(&block)
-      @store.each_value(&block)
+    def each(&)
+      @store.each_value(&)
     end
 
     def clear!

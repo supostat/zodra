@@ -1,13 +1,14 @@
-require:
+plugins:
   - rubocop-rspec
 
 AllCops:
   TargetRubyVersion: 3.2
   NewCops: enable
+  SuggestExtensions: false
   Exclude:
-    - "spec/dummy/**/*"
-    - "vendor/**/*"
-    - "tmp/**/*"
+    - 'spec/dummy/**/*'
+    - 'vendor/**/*'
+    - 'tmp/**/*'
 
 Style/Documentation:
   Enabled: false
@@ -15,10 +16,87 @@ Style/Documentation:
 Style/FrozenStringLiteralComment:
   EnforcedStyle: always
 
+Style/OpenStructUse:
+  Enabled: false
+
 Metrics/BlockLength:
   Exclude:
-    - "spec/**/*"
-    - "*.gemspec"
+    - 'spec/**/*'
+    - '*.gemspec'
+    - 'lib/zodra/tasks/**/*'
+
+Metrics/MethodLength:
+  Max: 30
+
+Metrics/ModuleLength:
+  Max: 200
+
+Metrics/ClassLength:
+  Max: 200
+
+Metrics/AbcSize:
+  Max: 40
+
+Metrics/CyclomaticComplexity:
+  Max: 15
+
+Metrics/PerceivedComplexity:
+  Max: 18
+
+Metrics/ParameterLists:
+  Max: 12
 
 Layout/LineLength:
-  Max: 120
+  Max: 160
+
+Naming/PredicatePrefix:
+  Enabled: false
+
+Naming/PredicateMethod:
+  Enabled: false
+
+Lint/EmptyBlock:
+  Exclude:
+    - 'spec/**/*'
+
+Lint/DuplicateBranch:
+  Enabled: false
+
+Lint/UnusedMethodArgument:
+  AllowUnusedKeywordArguments: true
+
+Lint/ShadowedException:
+  Enabled: false
+
+RSpec/ExampleLength:
+  Max: 55
+
+RSpec/MultipleExpectations:
+  Max: 10
+
+RSpec/MultipleMemoizedHelpers:
+  Max: 10
+
+RSpec/DescribeClass:
+  Exclude:
+    - 'spec/zodra/dsl_spec.rb'
+    - 'spec/zodra/type_deriver_spec.rb'
+    - 'spec/zodra/action_response_spec.rb'
+    - 'spec/zodra/contract_scoped_types_spec.rb'
+    - 'spec/acceptance/**/*'
+    - 'spec/integration/**/*'
+
+RSpec/SpecFilePathFormat:
+  Enabled: false
+
+RSpec/ContextWording:
+  Enabled: false
+
+RSpec/VerifiedDoubles:
+  Enabled: false
+
+RSpec/MultipleDescribes:
+  Enabled: false
+
+RSpec/DescribeMethod:
+  Enabled: false

@@ -31,7 +31,7 @@ module Zodra
     def crud_actions
       actions = CRUD_ACTIONS.keys
       actions -= [:index] if singular?
-      actions = actions & @only if @only
+      actions &= @only if @only
       actions -= @except if @except
       actions
     end

@@ -9,7 +9,7 @@ module Zodra
       end
 
       def generate
-        return "" if @contracts.empty?
+        return '' if @contracts.empty?
 
         parts = []
         parts << build_import
@@ -64,11 +64,11 @@ module Zodra
       end
 
       def pascal_case(name)
-        name.to_s.split("_").map(&:capitalize).join
+        name.to_s.split('_').map(&:capitalize).join
       end
 
       def camel_case(name)
-        parts = name.to_s.split("_")
+        parts = name.to_s.split('_')
         parts.first + parts[1..].map(&:capitalize).join
       end
     end

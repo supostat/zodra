@@ -12,11 +12,11 @@ module Zodra
       @store = {}
     end
 
-    def register(name, kind:, **options)
+    def register(name, kind:, **)
       name = name.to_sym
       raise DuplicateTypeError, "Type :#{name} is already registered" if @store.key?(name)
 
-      @store[name] = Definition.new(name:, kind:, **options)
+      @store[name] = Definition.new(name:, kind:, **)
     end
 
     def find(name)
@@ -31,8 +31,8 @@ module Zodra
       @store.key?(name.to_sym)
     end
 
-    def each(&block)
-      @store.each_value(&block)
+    def each(&)
+      @store.each_value(&)
     end
 
     def clear!

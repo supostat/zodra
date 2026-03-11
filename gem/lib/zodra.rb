@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
-require "zeitwerk"
-require "active_support/core_ext/string/inflections"
+require 'zeitwerk'
+require 'active_support/core_ext/string/inflections'
 
 module Zodra
   class Error < StandardError; end
@@ -13,7 +13,7 @@ module Zodra
 
     def initialize(errors)
       @errors = errors
-      super("Params validation failed")
+      super('Params validation failed')
     end
   end
 
@@ -78,9 +78,9 @@ module Zodra
       ContractRegistry.global.clear!
       ApiRegistry.global.clear!
 
-      load_definition_dir(Rails.root.join("app/types"))
-      load_definition_dir(Rails.root.join("app/contracts"))
-      load_definition_dir(Rails.root.join("config/apis"))
+      load_definition_dir(Rails.root.join('app/types'))
+      load_definition_dir(Rails.root.join('app/contracts'))
+      load_definition_dir(Rails.root.join('config/apis'))
 
       resolve_routes!
     end
@@ -96,7 +96,7 @@ module Zodra
     private
 
     def load_definition_dir(path)
-      Dir[path.join("**/*.rb")].sort.each { |file| load(file) }
+      Dir[path.join('**/*.rb')].each { |file| load(file) }
     end
 
     def resolve_resource_routes(resource, base_path, parent_param: nil)
@@ -132,7 +132,7 @@ module Zodra
 
     def setup_autoload
       @loader = Zeitwerk::Loader.for_gem.tap do |loader|
-        loader.inflector.inflect("dsl" => "DSL")
+        loader.inflector.inflect('dsl' => 'DSL')
         loader.ignore("#{__dir__}/generators")
         loader.ignore("#{__dir__}/zodra/tasks")
         loader.ignore("#{__dir__}/zodra/railtie.rb")
@@ -143,5 +143,5 @@ module Zodra
 
   setup_autoload
 
-  require "zodra/railtie" if defined?(Rails::Railtie)
+  require 'zodra/railtie' if defined?(Rails::Railtie)
 end

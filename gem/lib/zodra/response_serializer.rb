@@ -54,7 +54,7 @@ module Zodra
     end
 
     def self.camel_case(string)
-      parts = string.split("_")
+      parts = string.split('_')
       parts.first + parts[1..].map(&:capitalize).join
     end
 

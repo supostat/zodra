@@ -3,8 +3,8 @@
 module Zodra
   class TypeDeriver
     def initialize(source_definition, pick: nil, omit: nil, partial: false)
-      raise ArgumentError, "Cannot use both :pick and :omit" if pick && omit
-      raise ArgumentError, "Source must be an object type" unless source_definition.object?
+      raise ArgumentError, 'Cannot use both :pick and :omit' if pick && omit
+      raise ArgumentError, 'Source must be an object type' unless source_definition.object?
 
       @source = source_definition
       @pick = pick&.map(&:to_sym)
@@ -22,16 +22,16 @@ module Zodra
 
     def copy_attribute(target, name, attribute, optional: false)
       target.add_attribute(name,
-        type: attribute.type,
-        optional: optional || attribute.optional?,
-        nullable: attribute.nullable?,
-        format: attribute.format,
-        default: attribute.default,
-        min: attribute.min,
-        max: attribute.max,
-        enum: attribute.enum,
-        of: attribute.of,
-        reference_name: attribute.reference_name)
+                           type: attribute.type,
+                           optional: optional || attribute.optional?,
+                           nullable: attribute.nullable?,
+                           format: attribute.format,
+                           default: attribute.default,
+                           min: attribute.min,
+                           max: attribute.max,
+                           enum: attribute.enum,
+                           of: attribute.of,
+                           reference_name: attribute.reference_name)
     end
 
     def selected_attributes

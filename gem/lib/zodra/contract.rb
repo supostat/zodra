@@ -24,7 +24,7 @@ module Zodra
       types.find(type_name) || TypeRegistry.global.find!(type_name)
     end
 
-    alias_method :find!, :resolve_type
+    alias find! resolve_type
 
     def find(type_name)
       types.find(type_name) || TypeRegistry.global.find(type_name)

@@ -5,14 +5,14 @@ RSpec.describe Zodra::TypeRegistry do
 
   after { registry.clear! }
 
-  describe "#register" do
-    it "registers an object type" do
+  describe '#register' do
+    it 'registers an object type' do
       registry.register(:invoice, kind: :object)
 
       expect(registry.exists?(:invoice)).to be true
     end
 
-    it "registers an enum type" do
+    it 'registers an enum type' do
       registry.register(:status, kind: :enum, values: %i[draft sent paid])
 
       definition = registry.find!(:status)
@@ -20,7 +20,7 @@ RSpec.describe Zodra::TypeRegistry do
       expect(definition.values).to eq(%i[draft sent paid])
     end
 
-    it "registers a union type" do
+    it 'registers a union type' do
       registry.register(:payment_method, kind: :union, discriminator: :type)
 
       definition = registry.find!(:payment_method)
@@ -28,7 +28,7 @@ RSpec.describe Zodra::TypeRegistry do
       expect(definition.discriminator).to eq(:type)
     end
 
-    it "raises on duplicate registration" do
+    it 'raises on duplicate registration' do
       registry.register(:invoice, kind: :object)
 
       expect { registry.register(:invoice, kind: :object) }
@@ -36,17 +36,17 @@ RSpec.describe Zodra::TypeRegistry do
     end
   end
 
-  describe "#find / #find!" do
-    it "returns nil for missing type" do
+  describe '#find / #find!' do
+    it 'returns nil for missing type' do
       expect(registry.find(:missing)).to be_nil
     end
 
-    it "raises KeyError for missing type with find!" do
+    it 'raises KeyError for missing type with find!' do
       expect { registry.find!(:missing) }
         .to raise_error(KeyError, /missing/)
     end
 
-    it "returns registered definition" do
+    it 'returns registered definition' do
       registry.register(:invoice, kind: :object)
 
       definition = registry.find!(:invoice)
@@ -55,8 +55,8 @@ RSpec.describe Zodra::TypeRegistry do
     end
   end
 
-  describe "#each" do
-    it "iterates over all registered types" do
+  describe '#each' do
+    it 'iterates over all registered types' do
       registry.register(:invoice, kind: :object)
       registry.register(:status, kind: :enum, values: %i[draft sent])
 
@@ -65,8 +65,8 @@ RSpec.describe Zodra::TypeRegistry do
     end
   end
 
-  describe "#clear!" do
-    it "removes all registered types" do
+  describe '#clear!' do
+    it 'removes all registered types' do
       registry.register(:invoice, kind: :object)
       registry.clear!
 

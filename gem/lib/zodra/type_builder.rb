@@ -23,8 +23,8 @@ module Zodra
       @definition.add_attribute(name, type: :reference, reference_name: target)
     end
 
-    def array(name, of: nil, **options)
-      @definition.add_attribute(name, type: :array, of:, **options)
+    def array(name, of: nil, **)
+      @definition.add_attribute(name, type: :array, of:, **)
     end
 
     def from(type_name, pick: nil, omit: nil, partial: false)
@@ -37,20 +37,20 @@ module Zodra
       datetime :updated_at
     end
 
-    def method_missing(method_name, *args, **options, &block)
+    def method_missing(method_name, *args, **, &)
       name_string = method_name.to_s
-      optional = name_string.end_with?("?")
-      scalar_name = optional ? name_string.delete_suffix("?").to_sym : method_name
+      optional = name_string.end_with?('?')
+      scalar_name = optional ? name_string.delete_suffix('?').to_sym : method_name
 
       if ScalarRegistry.global.exists?(scalar_name)
-        @definition.add_attribute(args.first, type: scalar_name, optional:, **options)
+        @definition.add_attribute(args.first, type: scalar_name, optional:, **)
       else
         super
       end
     end
 
     def respond_to_missing?(method_name, include_private = false)
-      scalar_name = method_name.to_s.delete_suffix("?").to_sym
+      scalar_name = method_name.to_s.delete_suffix('?').to_sym
       ScalarRegistry.global.exists?(scalar_name) || super
     end
   end

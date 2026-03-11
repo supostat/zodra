@@ -5,15 +5,15 @@ RSpec.describe Zodra::ScalarRegistry do
 
   after { registry.clear! }
 
-  describe "#register" do
-    it "registers a custom scalar type" do
-      coercer = ->(value) { Date.strptime(value.to_s, "%d-%m-%Y") }
+  describe '#register' do
+    it 'registers a custom scalar type' do
+      coercer = ->(value) { Date.strptime(value.to_s, '%d-%m-%Y') }
       registry.register(:ui_date, base: :date, coercer:)
 
       expect(registry.exists?(:ui_date)).to be true
     end
 
-    it "raises on duplicate registration" do
+    it 'raises on duplicate registration' do
       coercer = ->(value) { value }
       registry.register(:ui_date, base: :date, coercer:)
 
@@ -22,8 +22,8 @@ RSpec.describe Zodra::ScalarRegistry do
     end
   end
 
-  describe "#find" do
-    it "returns registered scalar" do
+  describe '#find' do
+    it 'returns registered scalar' do
       coercer = ->(value) { value }
       registry.register(:ui_date, base: :date, coercer:)
 
@@ -32,13 +32,13 @@ RSpec.describe Zodra::ScalarRegistry do
       expect(scalar.base).to eq(:date)
     end
 
-    it "returns nil for missing scalar" do
+    it 'returns nil for missing scalar' do
       expect(registry.find(:missing)).to be_nil
     end
   end
 
-  describe "#clear!" do
-    it "removes all registered scalars" do
+  describe '#clear!' do
+    it 'removes all registered scalars' do
       registry.register(:ui_date, base: :date, coercer: ->(v) { v })
       registry.clear!
 

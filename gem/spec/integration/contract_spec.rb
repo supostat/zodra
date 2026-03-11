@@ -1,12 +1,12 @@
 # frozen_string_literal: true
 
-RSpec.describe "Contract DSL", :acceptance do
+RSpec.describe 'Contract DSL', :acceptance do
   before do
     Zodra::TypeRegistry.global.clear!
     Zodra::ContractRegistry.global.clear!
   end
 
-  it "defines a contract with actions via DSL" do
+  it 'defines a contract with actions via DSL' do
     Zodra.type :invoice do
       uuid :id
       string :number
@@ -43,14 +43,14 @@ RSpec.describe "Contract DSL", :acceptance do
     expect(show.response_type).to eq(:invoice)
   end
 
-  it "supports contract without actions" do
+  it 'supports contract without actions' do
     Zodra.contract :empty_resource
 
     contract = Zodra::ContractRegistry.global.find!(:empty_resource)
     expect(contract.actions).to be_empty
   end
 
-  it "supports action with params only" do
+  it 'supports action with params only' do
     Zodra.contract :search do
       action :query do
         params do

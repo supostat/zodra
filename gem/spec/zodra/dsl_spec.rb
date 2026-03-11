@@ -1,10 +1,10 @@
 # frozen_string_literal: true
 
-RSpec.describe "Zodra DSL" do
+RSpec.describe 'Zodra DSL' do
   before { Zodra::TypeRegistry.global.clear! }
 
-  describe ".type" do
-    it "registers an object type with attributes" do
+  describe '.type' do
+    it 'registers an object type with attributes' do
       Zodra.type :invoice do
         string :number
         decimal :amount, min: 0
@@ -16,7 +16,7 @@ RSpec.describe "Zodra DSL" do
       expect(definition.attributes.keys).to eq(%i[number amount paid])
     end
 
-    it "registers primitive types correctly" do
+    it 'registers primitive types correctly' do
       Zodra.type :full_example do
         uuid :id
         string :name
@@ -39,7 +39,7 @@ RSpec.describe "Zodra DSL" do
       expect(attrs[:birth_date].type).to eq(:date)
     end
 
-    it "supports optional fields with ? suffix methods" do
+    it 'supports optional fields with ? suffix methods' do
       Zodra.type :profile do
         string :name
         string? :nickname
@@ -50,7 +50,7 @@ RSpec.describe "Zodra DSL" do
       expect(definition.attributes[:nickname].optional?).to be true
     end
 
-    it "supports nullable fields" do
+    it 'supports nullable fields' do
       Zodra.type :profile do
         string :bio, nullable: true
       end
@@ -59,7 +59,7 @@ RSpec.describe "Zodra DSL" do
       expect(definition.attributes[:bio].nullable?).to be true
     end
 
-    it "supports reference to another type" do
+    it 'supports reference to another type' do
       Zodra.type :invoice do
         reference :customer
       end
@@ -69,7 +69,7 @@ RSpec.describe "Zodra DSL" do
       expect(attr.reference_name).to eq(:customer)
     end
 
-    it "supports array of references" do
+    it 'supports array of references' do
       Zodra.type :invoice do
         array :items, of: :item
       end
@@ -79,7 +79,7 @@ RSpec.describe "Zodra DSL" do
       expect(attr.of).to eq(:item)
     end
 
-    it "supports timestamps shortcut" do
+    it 'supports timestamps shortcut' do
       Zodra.type :invoice do
         timestamps
       end
@@ -90,22 +90,22 @@ RSpec.describe "Zodra DSL" do
     end
   end
 
-  describe ".configure" do
+  describe '.configure' do
     after { Zodra.instance_variable_set(:@configuration, nil) }
 
-    it "yields configuration block" do
+    it 'yields configuration block' do
       Zodra.configure do |c|
-        c.output_path = "frontend/types"
-        c.zod_import = "zod/v4"
+        c.output_path = 'frontend/types'
+        c.zod_import = 'zod/v4'
       end
 
-      expect(Zodra.configuration.output_path).to eq("frontend/types")
-      expect(Zodra.configuration.zod_import).to eq("zod/v4")
+      expect(Zodra.configuration.output_path).to eq('frontend/types')
+      expect(Zodra.configuration.zod_import).to eq('zod/v4')
     end
   end
 
-  describe ".enum" do
-    it "registers an enum type" do
+  describe '.enum' do
+    it 'registers an enum type' do
       Zodra.enum :status, values: %i[draft sent paid]
 
       definition = Zodra::TypeRegistry.global.find!(:status)
@@ -114,8 +114,8 @@ RSpec.describe "Zodra DSL" do
     end
   end
 
-  describe ".union" do
-    it "registers a discriminated union" do
+  describe '.union' do
+    it 'registers a discriminated union' do
       Zodra.union :payment_method, discriminator: :type do
         variant :card do
           string :last_four
