@@ -28,11 +28,11 @@ jobs:
           registry-url: https://registry.npmjs.org
 
       - run: pnpm install --frozen-lockfile
-      - run: pnpm typecheck
+      - run: pnpm --filter @zodra/client build
+      - run: pnpm --filter @zodra/client typecheck
+      - run: pnpm --filter zodra-vscode typecheck
+      - run: pnpm --filter zodra-example-frontend typecheck
       - run: pnpm test
-
-      - name: Build
-        run: pnpm --filter @zodra/client build
 
       - name: Publish
         run: pnpm --filter @zodra/client publish --no-git-checks
