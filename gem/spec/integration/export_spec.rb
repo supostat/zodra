@@ -4,6 +4,7 @@ RSpec.describe "Export pipeline", :acceptance do
   before do
     Zodra::TypeRegistry.global.clear!
     Zodra::ContractRegistry.global.clear!
+    Zodra::ApiRegistry.global.clear!
   end
 
   describe "TypeScript export" do
@@ -104,7 +105,7 @@ RSpec.describe "Export pipeline", :acceptance do
       result = Zodra::Export.generate(:zod)
 
       expect(result).to include("export const InvoiceSchema = z.object({")
-      expect(result).to include("id: z.string().uuid()")
+      expect(result).to include("id: z.uuid()")
       expect(result).to include("number: z.string()")
       expect(result).to include("amount: z.number().min(0)")
       expect(result).to include("paid: z.boolean().default(false)")
@@ -218,7 +219,7 @@ RSpec.describe "Export pipeline", :acceptance do
       expect(result).to include("number: z.string().min(1)")
       expect(result).to include("amount: z.number().min(0)")
       expect(result).to include("export const ShowInvoicesParamsSchema = z.object({")
-      expect(result).to include("id: z.string().uuid()")
+      expect(result).to include("id: z.uuid()")
     end
 
     it "exports contract descriptor as Zod" do
@@ -410,6 +411,65 @@ RSpec.describe "Export pipeline", :acceptance do
 
       expect(result).to include("z.ZodType<Employee>")
       expect(result).to include("z.ZodType<Department>")
+    end
+  end
+
+  describe "end-to-end: API definition resolves routes into contract export" do
+    before do
+      Zodra.type :product do
+        uuid :id
+        string :name
+        decimal :price
+      end
+
+      Zodra.contract :products do
+        action :index do
+          response :product, collection: true
+        end
+
+        action :show do
+          params { uuid :id }
+          response :product
+        end
+
+        action :create do
+          params do
+            string :name, min: 1
+            decimal :price, min: 0
+          end
+          response :product
+        end
+      end
+
+      Zodra.api "/api/v1" do
+        resources :products, only: %i[index show create]
+      end
+
+      Zodra.resolve_routes!
+    end
+
+    it "populates method and path from API resource definitions" do
+      result = Zodra::Export.generate(:zod)
+
+      expect(result).to include("method: 'GET' as const, path: '/api/v1/products' as const, params: IndexProductsParamsSchema")
+      expect(result).to include("method: 'GET' as const, path: '/api/v1/products/:id' as const, params: ShowProductsParamsSchema")
+      expect(result).to include("method: 'POST' as const, path: '/api/v1/products' as const, params: CreateProductsParamsSchema")
+    end
+
+    it "generates contracts barrel with baseUrl" do
+      result = Zodra::Export.generate_contracts
+
+      expect(result).to include("import { ProductsContract } from './schemas';")
+      expect(result).to include("products: ProductsContract")
+      expect(result).to include("export const baseUrl = '/api/v1';")
+    end
+
+    it "generates TypeScript contract descriptor with resolved routes" do
+      result = Zodra::Export.generate(:typescript)
+
+      expect(result).to include("method: 'GET'; path: '/api/v1/products'")
+      expect(result).to include("method: 'POST'; path: '/api/v1/products'")
+      expect(result).to include("method: 'GET'; path: '/api/v1/products/:id'")
     end
   end
 end

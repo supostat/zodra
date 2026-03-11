@@ -8,7 +8,6 @@ module Zodra
 
     def draw(context)
       Zodra.load_definitions!
-      resolve_action_routes!
 
       ApiRegistry.global.each do |api_definition|
         draw_api(context, api_definition)
@@ -16,49 +15,6 @@ module Zodra
     end
 
     private
-
-    def resolve_action_routes!
-      ApiRegistry.global.each do |api_definition|
-        api_definition.resources.each do |resource|
-          resolve_resource_actions(resource, api_definition.base_path)
-        end
-      end
-    end
-
-    def resolve_resource_actions(resource, base_path, parent_param: nil)
-      segment = resource.name.to_s
-      resource_path = parent_param ? "#{base_path}/#{parent_param}/#{segment}" : "#{base_path}/#{segment}"
-
-      contract = ContractRegistry.global.find(resource.contract_name)
-
-      if contract
-        resource.crud_actions.each do |action_name|
-          action = contract.find_action(action_name)
-          next unless action
-
-          crud = Resource::CRUD_ACTIONS[action_name]
-          action.http_method = crud[:http_method]
-          action.path = crud[:member] ? "#{resource_path}/:id" : resource_path
-        end
-
-        resource.custom_actions.each do |custom|
-          action = contract.find_action(custom[:name])
-          next unless action
-
-          action.http_method = custom[:http_method]
-          if custom[:member]
-            action.path = "#{resource_path}/:id/#{custom[:name]}"
-          else
-            action.path = "#{resource_path}/#{custom[:name]}"
-          end
-        end
-      end
-
-      resource.children.each do |child|
-        child_parent_param = resource.singular? ? nil : ":#{resource.name.to_s.singularize}_id"
-        resolve_resource_actions(child, resource_path, parent_param: child_parent_param)
-      end
-    end
 
     def draw_api(context, api_definition)
       router = self

@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require "zeitwerk"
+require "active_support/core_ext/string/inflections"
 
 module Zodra
   class Error < StandardError; end
@@ -68,12 +69,53 @@ module Zodra
       load_definition_dir(Rails.root.join("app/types"))
       load_definition_dir(Rails.root.join("app/contracts"))
       load_definition_dir(Rails.root.join("config/apis"))
+
+      resolve_routes!
+    end
+
+    def resolve_routes!
+      ApiRegistry.global.each do |api_definition|
+        api_definition.resources.each do |resource|
+          resolve_resource_routes(resource, api_definition.base_path)
+        end
+      end
     end
 
     private
 
     def load_definition_dir(path)
       Dir[path.join("**/*.rb")].sort.each { |file| load(file) }
+    end
+
+    def resolve_resource_routes(resource, base_path, parent_param: nil)
+      segment = resource.name.to_s
+      resource_path = parent_param ? "#{base_path}/#{parent_param}/#{segment}" : "#{base_path}/#{segment}"
+
+      contract = ContractRegistry.global.find(resource.contract_name)
+
+      if contract
+        resource.crud_actions.each do |action_name|
+          action = contract.find_action(action_name)
+          next unless action
+
+          crud = Resource::CRUD_ACTIONS[action_name]
+          action.http_method = crud[:http_method]
+          action.path = crud[:member] ? "#{resource_path}/:id" : resource_path
+        end
+
+        resource.custom_actions.each do |custom|
+          action = contract.find_action(custom[:name])
+          next unless action
+
+          action.http_method = custom[:http_method]
+          action.path = custom[:member] ? "#{resource_path}/:id/#{custom[:name]}" : "#{resource_path}/#{custom[:name]}"
+        end
+      end
+
+      resource.children.each do |child|
+        child_parent_param = resource.singular? ? nil : ":#{resource.name.to_s.singularize}_id"
+        resolve_resource_routes(child, resource_path, parent_param: child_parent_param)
+      end
     end
 
     def setup_autoload

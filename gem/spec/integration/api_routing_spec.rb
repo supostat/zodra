@@ -123,8 +123,7 @@ RSpec.describe "API routing", :acceptance do
       end
     end
 
-    router = Zodra::Router.new
-    router.send(:resolve_action_routes!)
+    Zodra.resolve_routes!
 
     contract = Zodra::ContractRegistry.global.find!(:invoices)
 
@@ -168,8 +167,7 @@ RSpec.describe "API routing", :acceptance do
       end
     end
 
-    router = Zodra::Router.new
-    router.send(:resolve_action_routes!)
+    Zodra.resolve_routes!
 
     contract = Zodra::ContractRegistry.global.find!(:items)
 
