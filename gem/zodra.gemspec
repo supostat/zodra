@@ -6,12 +6,12 @@ Gem::Specification.new do |spec|
   spec.authors = ["Zodra Contributors"]
   spec.summary = "End-to-end type system for Rails: DSL → TypeScript + Zod"
   spec.description = "Define types once in Ruby DSL, generate TypeScript interfaces and Zod schemas for runtime validation on both ends."
-  spec.homepage = "https://github.com/zodra/zodra"
+  spec.homepage = "https://github.com/supostat/zodra"
   spec.license = "MIT"
 
   spec.required_ruby_version = ">= 3.2"
 
-  spec.files = Dir["lib/**/*", "LICENSE", "README.md"]
+  spec.files = Dir["lib/**/*", "CHANGELOG.md"]
   spec.require_paths = ["lib"]
 
   spec.add_dependency "railties", ">= 7.1"
@@ -20,4 +20,5 @@ Gem::Specification.new do |spec|
   spec.metadata["rubygems_mfa_required"] = "true"
   spec.metadata["homepage_uri"] = spec.homepage
   spec.metadata["source_code_uri"] = spec.homepage
+  spec.metadata["changelog_uri"] = "#{spec.homepage}/blob/main/gem/CHANGELOG.md"
 end

@@ -1,0 +1,35 @@
+name: Publish Gem
+
+on:
+  push:
+    tags:
+      - "gem-v*"
+
+permissions:
+  contents: read
+
+jobs:
+  publish:
+    name: Publish to RubyGems
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: gem
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: "3.4"
+          bundler-cache: true
+          working-directory: gem
+
+      - name: Run tests
+        run: bundle exec rspec
+
+      - name: Build gem
+        run: gem build zodra.gemspec
+
+      - name: Publish to RubyGems
+        run: gem push zodra-*.gem
+        env:
+          GEM_HOST_API_KEY: ${{ secrets.RUBYGEMS_API_KEY }}

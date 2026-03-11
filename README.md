@@ -17,7 +17,7 @@
 </p>
 
 <p align="center">
-  <em>Work in progress — not yet published to RubyGems or npm.</em>
+  ⚠️ <strong>Work in progress</strong> — not yet published to RubyGems or npm. For evaluation purposes only. ⚠️
 </p>
 
 ---
