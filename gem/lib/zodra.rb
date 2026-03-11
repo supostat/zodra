@@ -18,6 +18,12 @@ module Zodra
   end
 
   class << self
+    def logger
+      @logger || (defined?(Rails) ? Rails.logger : nil)
+    end
+
+    attr_writer :logger
+
     def configuration
       @configuration ||= Configuration.new
     end

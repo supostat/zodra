@@ -55,6 +55,7 @@ module Zodra
 
     def zodra_errors(errors, status: :unprocessable_entity)
       normalized = normalize_errors(errors)
+      validate_error_keys!(normalized)
       render json: { errors: transform_error_keys(normalized) }, status:
     end
 
@@ -80,6 +81,29 @@ module Zodra
       else
         errors
       end
+    end
+
+    def validate_error_keys!(errors)
+      return unless valid_error_keys_for_action
+
+      unknown_keys = errors.keys.map(&:to_sym) - valid_error_keys_for_action
+      return if unknown_keys.empty?
+
+      message = "Unknown error keys #{unknown_keys.inspect} for action :#{action_name}. " \
+                "Valid keys: #{valid_error_keys_for_action.inspect}"
+
+      if defined?(Rails) && !Rails.env.production?
+        raise Zodra::Error, message
+      else
+        Zodra.logger&.warn("[Zodra] #{message}")
+      end
+    end
+
+    def valid_error_keys_for_action
+      return @valid_error_keys_for_action if defined?(@valid_error_keys_for_action)
+
+      param_keys = zodra_action.params.attributes.keys
+      @valid_error_keys_for_action = param_keys.empty? ? nil : param_keys + [:base]
     end
 
     def transform_error_keys(errors)
