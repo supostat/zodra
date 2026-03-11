@@ -12,9 +12,9 @@ export default function Layout({ children }: { children: ReactNode }) {
           <Image
             src="/logo.svg"
             alt="Zodra"
-            width={120}
-            height={68}
-            className="h-8 w-auto"
+            width={360}
+            height={72}
+            className="h-24 w-auto"
           />
         ),
         url: "/",

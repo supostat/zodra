@@ -4,13 +4,13 @@ import { Github } from "lucide-react"
 export function Footer() {
   return (
     <footer className="border-t border-border">
-      <div className="max-w-6xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
+      <div className="max-w-6xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4 px-6 py-6">
         <Image
           src="/logo.svg"
           alt="Zodra"
-          width={360}
-          height={205}
-          className="h-24 w-auto"
+          width={150}
+          height={30}
+          className="h-10 w-auto"
         />
 
         <div className="flex items-center gap-6 text-sm text-muted-foreground">
@@ -18,7 +18,7 @@ export function Footer() {
             Docs
           </a>
           <a
-            href="https://github.com/pirkus/zodra"
+            href="https://github.com/supostat/zodra"
             target="_blank"
             rel="noopener noreferrer"
             className="flex items-center gap-2 hover:text-foreground transition-colors"

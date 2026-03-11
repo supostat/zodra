@@ -55,13 +55,13 @@ export function Features() {
         </div>
 
         <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
-          {features.map((feature, index) => (
+          {features.map((feature) => (
             <Card
-              key={index}
-              className="bg-card/50 border-border/50 hover:border-[#C9184A]/30 transition-colors"
+              key={feature.title}
+              className="bg-card/50 border-border/50 hover:border-brand/30 transition-colors"
             >
               <CardContent className="pt-6">
-                <feature.icon className="w-10 h-10 text-[#C9184A] mb-4" />
+                <feature.icon className="w-10 h-10 text-brand mb-4" />
                 <h3 className="text-lg font-semibold mb-2">{feature.title}</h3>
                 <p className="text-muted-foreground text-sm leading-relaxed">
                   {feature.description}

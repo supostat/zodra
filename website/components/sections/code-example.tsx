@@ -1,7 +1,7 @@
 "use client"
 
 import { useState } from "react"
-import { CodeBlock } from "@/components/code-block"
+import { DynamicCodeBlock } from "fumadocs-ui/components/dynamic-codeblock"
 import { cn } from "@/lib/utils"
 
 const tabs = [
@@ -94,23 +94,24 @@ const product = await createProduct({
 })`
 }
 
+type TabId = keyof typeof codeExamples
+
+const tabLanguages: Record<TabId, string> = {
+  type: "ruby",
+  contract: "ruby",
+  schema: "typescript",
+  frontend: "typescript",
+}
+
+const tabFilenames: Record<TabId, string> = {
+  type: "app/types/product.rb",
+  contract: "app/contracts/products.rb",
+  schema: "zodra/product.ts",
+  frontend: "src/api/products.ts",
+}
+
 export function CodeExample() {
-  const [activeTab, setActiveTab] = useState<keyof typeof codeExamples>("type")
-
-  const getLanguage = (tab: string) => {
-    if (tab === "type" || tab === "contract") return "ruby"
-    return "typescript"
-  }
-
-  const getFilename = (tab: string) => {
-    switch (tab) {
-      case "type": return "app/types/product.rb"
-      case "contract": return "app/contracts/products.rb"
-      case "schema": return "zodra/product.ts"
-      case "frontend": return "src/api/products.ts"
-      default: return ""
-    }
-  }
+  const [activeTab, setActiveTab] = useState<TabId>("type")
 
   return (
     <section className="py-24 px-6 lg:px-12">
@@ -125,16 +126,16 @@ export function CodeExample() {
         </div>
 
         {/* Tab Switcher */}
-        <div className="flex items-center justify-center mb-6">
+        <div className="flex items-center justify-center mb-6 overflow-x-auto">
           <div className="inline-flex rounded-lg bg-secondary/50 p-1">
             {tabs.map((tab) => (
               <button
                 key={tab.id}
-                onClick={() => setActiveTab(tab.id as keyof typeof codeExamples)}
+                onClick={() => setActiveTab(tab.id as TabId)}
                 className={cn(
-                  "px-4 py-2 text-sm font-medium rounded-md transition-all",
+                  "px-4 py-2 text-sm font-medium rounded-md transition-all whitespace-nowrap",
                   activeTab === tab.id
-                    ? "bg-[#C9184A] text-white"
+                    ? "bg-brand text-white"
                     : "text-muted-foreground hover:text-foreground"
                 )}
               >
@@ -145,14 +146,14 @@ export function CodeExample() {
         </div>
 
         {/* Code Block */}
-        <div className="rounded-xl border border-border overflow-hidden">
-          <CodeBlock
-            code={codeExamples[activeTab]}
-            language={getLanguage(activeTab)}
-            filename={getFilename(activeTab)}
-            showLineNumbers
-          />
-        </div>
+        <DynamicCodeBlock
+          code={codeExamples[activeTab]}
+          lang={tabLanguages[activeTab]}
+          codeblock={{
+            title: tabFilenames[activeTab],
+            "data-line-numbers": true,
+          }}
+        />
       </div>
     </section>
   )

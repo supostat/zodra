@@ -1,4 +1,4 @@
-import { CodeBlock } from "@/components/code-block"
+import { DynamicCodeBlock } from "fumadocs-ui/components/dynamic-codeblock"
 import { ArrowRight, RefreshCw } from "lucide-react"
 
 const step1Code = `# Define types in Ruby
@@ -35,7 +35,7 @@ export function HowItWorks() {
           {/* Step 1 */}
           <div className="space-y-4">
             <div className="flex items-center gap-3">
-              <div className="flex items-center justify-center w-10 h-10 rounded-full bg-[#C9184A] text-white font-bold">
+              <div className="flex items-center justify-center w-10 h-10 rounded-full bg-brand text-white font-bold">
                 1
               </div>
               <h3 className="text-xl font-semibold">Define in Ruby</h3>
@@ -43,39 +43,28 @@ export function HowItWorks() {
             <p className="text-muted-foreground">
               Use the Zodra DSL to define types, contracts, and API routes.
             </p>
-            <CodeBlock code={step1Code} language="ruby" />
+            <DynamicCodeBlock code={step1Code} lang="ruby" />
           </div>
 
-          {/* Step 2 - Arrow */}
-          <div className="hidden lg:flex flex-col items-center justify-center h-full pt-16">
-            <div className="flex flex-col items-center gap-4">
-              <RefreshCw className="w-12 h-12 text-[#C9184A] animate-pulse" />
+          {/* Step 2 */}
+          <div className="flex flex-col items-center justify-center py-8 lg:h-full lg:pt-16">
+            <div className="flex lg:flex-col items-center gap-4">
+              <RefreshCw className="w-8 h-8 lg:w-12 lg:h-12 text-brand animate-pulse" />
               <div className="text-center">
-                <h3 className="text-xl font-semibold">Zodra Generates</h3>
-                <p className="text-muted-foreground mt-2 text-sm">
-                  TypeScript types, Zod schemas, and a typed client
+                <h3 className="font-semibold lg:text-xl">Zodra Generates</h3>
+                <p className="text-muted-foreground mt-1 lg:mt-2 text-sm">
+                  <span className="lg:hidden">TS types + Zod schemas</span>
+                  <span className="hidden lg:inline">TypeScript types, Zod schemas, and a typed client</span>
                 </p>
               </div>
-              <ArrowRight className="w-8 h-8 text-muted-foreground" />
-            </div>
-          </div>
-
-          {/* Mobile Step 2 */}
-          <div className="lg:hidden flex items-center justify-center py-8">
-            <div className="flex items-center gap-4">
-              <RefreshCw className="w-8 h-8 text-[#C9184A]" />
-              <div>
-                <h3 className="font-semibold">Zodra Generates</h3>
-                <p className="text-muted-foreground text-sm">TS types + Zod schemas</p>
-              </div>
-              <ArrowRight className="w-6 h-6 text-muted-foreground" />
+              <ArrowRight className="hidden lg:block w-8 h-8 text-muted-foreground" />
             </div>
           </div>
 
           {/* Step 3 */}
           <div className="space-y-4">
             <div className="flex items-center gap-3">
-              <div className="flex items-center justify-center w-10 h-10 rounded-full bg-[#C9184A] text-white font-bold">
+              <div className="flex items-center justify-center w-10 h-10 rounded-full bg-brand text-white font-bold">
                 3
               </div>
               <h3 className="text-xl font-semibold">Use in Frontend</h3>
@@ -83,7 +72,7 @@ export function HowItWorks() {
             <p className="text-muted-foreground">
               Import generated schemas with full TypeScript inference and runtime validation.
             </p>
-            <CodeBlock code={step3Code} language="typescript" />
+            <DynamicCodeBlock code={step3Code} lang="typescript" />
           </div>
         </div>
       </div>
