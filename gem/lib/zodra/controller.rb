@@ -12,7 +12,8 @@ module Zodra
       wrap_parameters false
 
       rescue_from Zodra::ParamsError do |error|
-        render json: { errors: transform_error_keys(error.errors) }, status: :unprocessable_entity
+        key_format = Zodra.configuration.key_format
+        render json: { errors: ErrorTransformer.transform_keys(error.errors, key_format:) }, status: :unprocessable_entity
       end
     end
 
@@ -67,9 +68,10 @@ module Zodra
     end
 
     def zodra_errors(errors, status: :unprocessable_entity)
-      normalized = normalize_errors(errors)
-      validate_error_keys!(normalized)
-      render json: { errors: transform_error_keys(normalized) }, status:
+      normalized = ErrorTransformer.normalize(errors)
+      ErrorTransformer.validate_keys!(normalized, valid_keys: valid_error_keys_for_action, action_name:)
+      key_format = Zodra.configuration.key_format
+      render json: { errors: ErrorTransformer.transform_keys(normalized, key_format:) }, status:
     end
 
     def zodra_action
@@ -100,42 +102,11 @@ module Zodra
       render json: { error: { code: mapping[:code].to_s, message: exception.message } }, status:
     end
 
-    def normalize_errors(errors)
-      if errors.respond_to?(:to_hash)
-        errors.to_hash
-      elsif errors.respond_to?(:messages)
-        errors.messages
-      else
-        errors
-      end
-    end
-
-    def validate_error_keys!(errors)
-      return unless valid_error_keys_for_action
-
-      unknown_keys = errors.keys.map(&:to_sym) - valid_error_keys_for_action
-      return if unknown_keys.empty?
-
-      message = "Unknown error keys #{unknown_keys.inspect} for action :#{action_name}. " \
-                "Valid keys: #{valid_error_keys_for_action.inspect}"
-
-      raise Zodra::Error, message if defined?(Rails) && !Rails.env.production?
-
-      Zodra.logger&.warn("[Zodra] #{message}")
-    end
-
     def valid_error_keys_for_action
       return @valid_error_keys_for_action if defined?(@valid_error_keys_for_action)
 
       param_keys = zodra_action.params.attributes.keys
       @valid_error_keys_for_action = param_keys.empty? ? nil : param_keys + [:base]
-    end
-
-    def transform_error_keys(errors)
-      key_format = Zodra.configuration.key_format
-      return errors if key_format == :keep
-
-      errors.transform_keys { |key| ResponseSerializer.send(:transform_key, key, key_format) }
     end
   end
 end

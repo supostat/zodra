@@ -3,6 +3,8 @@
 module Zodra
   module Export
     class ContractMapper
+      include NamingConventions
+
       def initialize(api_definitions, contracts)
         @api_definitions = api_definitions
         @contracts = contracts
@@ -61,15 +63,6 @@ module Zodra
       def collect_names_recursive(resource, names)
         names << resource.contract_name.to_s
         resource.children.each { |child| collect_names_recursive(child, names) }
-      end
-
-      def pascal_case(name)
-        name.to_s.split('_').map(&:capitalize).join
-      end
-
-      def camel_case(name)
-        parts = name.to_s.split('_')
-        parts.first + parts[1..].map(&:capitalize).join
       end
     end
   end

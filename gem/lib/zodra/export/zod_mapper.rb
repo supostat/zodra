@@ -3,6 +3,8 @@
 module Zodra
   module Export
     class ZodMapper
+      include NamingConventions
+
       PRIMITIVE_MAP = {
         string: 'z.string()',
         integer: 'z.number().int()',
@@ -187,15 +189,6 @@ module Zodra
           scalar = ScalarRegistry.global.find(type)
           scalar ? PRIMITIVE_MAP.fetch(scalar.base, 'z.unknown()') : 'z.unknown()'
         end
-      end
-
-      def pascal_case(name)
-        name.to_s.split('_').map(&:capitalize).join
-      end
-
-      def camel_case(string)
-        parts = string.split('_')
-        parts.first + parts[1..].map(&:capitalize).join
       end
     end
   end

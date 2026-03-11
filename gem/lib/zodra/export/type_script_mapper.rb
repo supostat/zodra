@@ -3,6 +3,8 @@
 module Zodra
   module Export
     class TypeScriptMapper
+      include NamingConventions
+
       PRIMITIVE_MAP = {
         string: 'string',
         integer: 'number',
@@ -93,7 +95,7 @@ module Zodra
         key_string = key.to_s
         case @key_format
         when :camel then camel_case(key_string)
-        when :pascal then pascal_case_string(key_string)
+        when :pascal then pascal_case(key_string)
         else key_string
         end
       end
@@ -126,19 +128,6 @@ module Zodra
           scalar = ScalarRegistry.global.find(type)
           scalar ? PRIMITIVE_MAP.fetch(scalar.base, 'unknown') : 'unknown'
         end
-      end
-
-      def pascal_case(name)
-        name.to_s.split('_').map(&:capitalize).join
-      end
-
-      def pascal_case_string(string)
-        string.split('_').map(&:capitalize).join
-      end
-
-      def camel_case(string)
-        parts = string.split('_')
-        parts.first + parts[1..].map(&:capitalize).join
       end
     end
   end
