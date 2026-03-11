@@ -68,30 +68,27 @@ export const CreateProductsParamsSchema = z.object({
   sku: z.string().min(1),
 })`,
 
-  frontend: `import { ProductSchema } from '@zodra/client'
-import type { Product } from '@zodra/client'
+  frontend: `import { createApiClient } from '@zodra/client'
+import { contracts } from './zodra/contracts'
 
-// Type-safe API calls
-async function createProduct(data: CreateProductsParams) {
-  const validated = CreateProductsParamsSchema.parse(data)
+// One-time setup — typed from generated schemas
+const api = createApiClient({
+  baseUrl: '/api/v1',
+  contracts,
+})
 
-  const response = await fetch('/api/v1/products', {
-    method: 'POST',
-    body: JSON.stringify(validated),
-  })
-
-  return ProductSchema.parse(await response.json())
-}
-
-// Full autocomplete in your IDE
-const product = await createProduct({
+// Full type safety — params and response are inferred
+const { data: product } = await api.products.create({
   name: "Premium Widget",
   price: 29.99,
   currency: "USD",
   in_stock: true,
   tags: ["new", "featured"],
   sku: "PWG-001",
-})`
+})
+
+// product is typed as Product
+console.log(product.name, product.currency)`
 }
 
 type TabId = keyof typeof codeExamples
@@ -107,7 +104,7 @@ const tabFilenames: Record<TabId, string> = {
   type: "app/types/product.rb",
   contract: "app/contracts/products.rb",
   schema: "zodra/product.ts",
-  frontend: "src/api/products.ts",
+  frontend: "src/api/client.ts",
 }
 
 export function CodeExample() {
