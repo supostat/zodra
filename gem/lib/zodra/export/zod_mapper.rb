@@ -85,7 +85,7 @@ module Zodra
         elsif attribute.array?
           "z.array(#{pascal_case(attribute.of)}Schema)"
         else
-          PRIMITIVE_MAP.fetch(attribute.type, "z.unknown()")
+          resolve_primitive_type(attribute.type)
         end
       end
 
@@ -140,6 +140,13 @@ module Zodra
         end
 
         "export const #{name}Contract = {\n#{entries.join(",\n")},\n} as const;"
+      end
+
+      def resolve_primitive_type(type)
+        PRIMITIVE_MAP.fetch(type) do
+          scalar = ScalarRegistry.global.find(type)
+          scalar ? PRIMITIVE_MAP.fetch(scalar.base, "z.unknown()") : "z.unknown()"
+        end
       end
 
       def pascal_case(name)

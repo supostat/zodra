@@ -53,9 +53,14 @@ module Zodra
       api_definition
     end
 
+    def scalar(name, base:, &coercer)
+      ScalarRegistry.global.register(name, base:, coercer:)
+    end
+
     def load_definitions!
       return unless defined?(Rails)
 
+      ScalarRegistry.global.clear!
       TypeRegistry.global.clear!
       ContractRegistry.global.clear!
       ApiRegistry.global.clear!

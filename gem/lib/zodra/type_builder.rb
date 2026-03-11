@@ -31,5 +31,22 @@ module Zodra
       datetime :created_at
       datetime :updated_at
     end
+
+    def method_missing(method_name, *args, **options, &block)
+      name_string = method_name.to_s
+      optional = name_string.end_with?("?")
+      scalar_name = optional ? name_string.delete_suffix("?").to_sym : method_name
+
+      if ScalarRegistry.global.exists?(scalar_name)
+        @definition.add_attribute(args.first, type: scalar_name, optional:, **options)
+      else
+        super
+      end
+    end
+
+    def respond_to_missing?(method_name, include_private = false)
+      scalar_name = method_name.to_s.delete_suffix("?").to_sym
+      ScalarRegistry.global.exists?(scalar_name) || super
+    end
   end
 end

@@ -24,7 +24,9 @@ module Zodra
       when :uuid     then coerce_uuid(value)
       when :binary   then value.to_s
       when :array    then coerce_array(value, of)
-      else value
+      else
+        scalar = ScalarRegistry.global.find(type)
+        scalar ? scalar.coercer.call(value) : value
       end
     end
 
