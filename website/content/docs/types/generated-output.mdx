@@ -1,0 +1,147 @@
+---
+title: Generated Output
+description: What Zodra generates from your Ruby type definitions
+---
+
+# Generated Output
+
+Zodra generates TypeScript types and Zod schemas from your Ruby definitions. Run the export task to produce the output files:
+
+```bash
+rails zodra:export
+```
+
+## Type → Zod schema
+
+A Ruby type definition:
+
+```ruby title="app/types/product.rb"
+Zodra.type :product do
+  uuid :id
+  string :name, min: 1, max: 255
+  decimal :price, min: 0
+  string :currency, enum: %w[USD EUR GBP]
+  boolean :in_stock, default: true
+  array :tags, of: :string
+  timestamps
+end
+```
+
+Generates:
+
+```typescript title="zodra/product.ts"
+import { z } from "zod";
+
+export const ProductSchema = z.object({
+  id: z.string().uuid(),
+  name: z.string().min(1).max(255),
+  price: z.number().min(0),
+  currency: z.enum(["USD", "EUR", "GBP"]),
+  inStock: z.boolean().default(true),
+  tags: z.array(z.string()),
+  createdAt: z.string().datetime(),
+  updatedAt: z.string().datetime(),
+});
+
+export type Product = z.infer<typeof ProductSchema>;
+```
+
+## Key format
+
+Keys are transformed based on the `key_format` configuration:
+
+```ruby
+# config/initializers/zodra.rb
+Zodra.configure do |config|
+  config.key_format = :camel  # created_at → createdAt (default)
+end
+```
+
+See [Configuration](/docs/configuration) for all options.
+
+## Enum → Zod enum
+
+```ruby
+Zodra.enum :order_status, values: %i[draft confirmed shipped]
+```
+
+```typescript
+export const OrderStatusSchema = z.enum(["draft", "confirmed", "shipped"]);
+export type OrderStatus = z.infer<typeof OrderStatusSchema>;
+```
+
+## Union → discriminated union
+
+```ruby
+Zodra.union :payment_method, discriminator: :type do
+  variant :card do
+    string :last_four
+    string :brand
+  end
+  variant :bank_transfer do
+    string :bank_name
+  end
+end
+```
+
+```typescript
+export const PaymentMethodSchema = z.discriminatedUnion("type", [
+  z.object({
+    type: z.literal("card"),
+    lastFour: z.string(),
+    brand: z.string(),
+  }),
+  z.object({
+    type: z.literal("bank_transfer"),
+    bankName: z.string(),
+  }),
+]);
+```
+
+## Contract → client definitions
+
+Contracts generate action definitions that the `@zodra/client` uses for typed API calls:
+
+```typescript title="zodra/contracts.ts"
+import { ProductSchema } from "./product";
+
+export const contracts = {
+  products: {
+    index: {
+      method: "GET",
+      path: "/products",
+      params: z.object({}),
+      response: z.array(ProductSchema),
+    },
+    show: {
+      method: "GET",
+      path: "/products/:id",
+      params: z.object({ id: z.string().uuid() }),
+      response: ProductSchema,
+    },
+    create: {
+      method: "POST",
+      path: "/products",
+      params: z.object({
+        name: z.string().min(1),
+        price: z.number().min(0),
+      }),
+      response: ProductSchema,
+    },
+  },
+};
+```
+
+## Output structure
+
+Generated files are written to the configured `output_path` (default: `app/javascript/types`):
+
+```
+app/javascript/types/
+├── schemas/
+│   ├── product.ts
+│   ├── customer.ts
+│   ├── order.ts
+│   └── order_status.ts
+└── contracts.ts
+```

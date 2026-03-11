@@ -1,0 +1,295 @@
+---
+title: Full Example
+description: A complete end-to-end example with types, contracts, routing, controllers, and frontend
+---
+
+# Full Example
+
+This example builds an order management API from scratch — types, contracts, routing, controller, and frontend client.
+
+## 1. Types
+
+```ruby title="app/types/custom_scalars.rb"
+Zodra.scalar :money, base: :decimal do |value|
+  BigDecimal(value.to_s).round(2)
+rescue ArgumentError
+  :coercion_error
+end
+```
+
+```ruby title="app/types/order_status.rb"
+Zodra.enum :order_status, values: %i[draft confirmed shipped delivered cancelled]
+```
+
+```ruby title="app/types/product.rb"
+Zodra.type :product do
+  uuid :id
+  string :name
+  string :sku
+  money :price
+  integer :stock
+  boolean :published
+end
+```
+
+```ruby title="app/types/line_item.rb"
+Zodra.type :line_item do
+  uuid :id
+  reference :product
+  integer :quantity, min: 1
+  money :unit_price
+  money :total_price
+end
+```
+
+```ruby title="app/types/customer.rb"
+Zodra.type :customer do
+  uuid :id
+  string :name
+  string :email
+  string? :phone
+  string :notes, nullable: true
+  datetime :registered_at
+  timestamps
+end
+```
+
+```ruby title="app/types/order.rb"
+Zodra.type :order do
+  uuid :id
+  string :number
+  order_status :status
+  reference :customer
+  array :line_items, of: :line_item
+  money :total_amount
+  string? :shipping_address
+  date :estimated_delivery, nullable: true
+  timestamps
+end
+```
+
+```ruby title="app/types/order_input.rb"
+Zodra.type :order_input do
+  uuid :customer_id
+  string? :shipping_address
+  array :items, of: :order_item_input
+end
+```
+
+```ruby title="app/types/order_item_input.rb"
+Zodra.type :order_item_input do
+  uuid :product_id
+  integer :quantity, min: 1
+end
+```
+
+## 2. Contract
+
+```ruby title="app/contracts/orders.rb"
+Zodra.contract :orders do
+  action :index do
+    response :order, collection: true
+  end
+
+  action :show do
+    params do
+      uuid :id
+    end
+    response :order
+  end
+
+  action :create do
+    params from: :order_input
+    response :order
+    error :validation_failed, status: 422
+  end
+
+  action :confirm do
+    params do
+      uuid :id
+    end
+    response :order
+    error :not_found, status: 404
+    error :invalid_transition, status: 422
+  end
+
+  action :cancel do
+    params do
+      uuid :id
+    end
+    response :order
+    error :not_found, status: 404
+    error :invalid_transition, status: 422
+  end
+
+  action :search do
+    params do
+      order_status? :status
+      date? :from_date
+      date? :to_date
+    end
+    response :order, collection: true
+  end
+end
+```
+
+## 3. API routes
+
+```ruby title="config/apis/v1.rb"
+Zodra.api "/api/v1" do
+  resources :orders, only: %i[index show create] do
+    member do
+      patch :confirm
+      patch :cancel
+    end
+    collection do
+      get :search
+    end
+  end
+end
+```
+
+```ruby title="config/routes.rb"
+Rails.application.routes.draw do
+  zodra_routes
+end
+```
+
+## 4. Controller
+
+```ruby title="app/controllers/api/v1/orders_controller.rb"
+module Api
+  module V1
+    class OrdersController < ApplicationController
+      include Zodra::Controller
+
+      zodra_contract :orders
+
+      zodra_rescue :confirm, InvalidTransitionError, as: :invalid_transition
+      zodra_rescue :cancel, InvalidTransitionError, as: :invalid_transition
+
+      def index
+        orders = Order.includes(:customer, line_items: :product).all
+        zodra_respond_collection(orders)
+      end
+
+      def show
+        order = Order.includes(:customer, line_items: :product)
+                     .find(zodra_params[:id])
+        zodra_respond(order)
+      end
+
+      def create
+        order = build_order
+        zodra_respond(order, status: :created)
+      end
+
+      def confirm
+        order = Order.find(zodra_params[:id])
+        order.confirm!
+        zodra_respond(order.reload)
+      end
+
+      def cancel
+        order = Order.find(zodra_params[:id])
+        order.cancel!
+        zodra_respond(order.reload)
+      end
+
+      def search
+        orders = Order.includes(:customer, line_items: :product)
+        orders = orders.where(status: zodra_params[:status]) if zodra_params[:status]
+        orders = orders.where("created_at >= ?", zodra_params[:from_date]) if zodra_params[:from_date]
+        orders = orders.where("created_at <= ?", zodra_params[:to_date]) if zodra_params[:to_date]
+        zodra_respond_collection(orders)
+      end
+
+      private
+
+      def build_order
+        ActiveRecord::Base.transaction do
+          order = Order.create!(
+            customer_id: zodra_params[:customer_id],
+            shipping_address: zodra_params[:shipping_address],
+          )
+
+          zodra_params[:items].each do |item|
+            product = Product.find(item[:product_id])
+            order.line_items.create!(
+              product: product,
+              quantity: item[:quantity],
+              unit_price: product.price,
+            )
+          end
+
+          order.recalculate_total!
+          order.reload
+        end
+      end
+    end
+  end
+end
+```
+
+## 5. Generate TypeScript
+
+```bash
+rails zodra:export
+```
+
+## 6. Frontend client
+
+```typescript title="src/api.ts"
+import { createApiClient } from "@zodra/client";
+import { contracts } from "./zodra/contracts";
+
+export const api = createApiClient({
+  baseUrl: "/api/v1",
+  contracts,
+  validateParams: true,
+});
+```
+
+```typescript title="src/orders.ts"
+import {
+  ZodraFieldError,
+  ZodraBusinessError,
+} from "@zodra/client";
+import { api } from "./api";
+
+// List orders
+const { data: orders } = await api.orders.index({});
+
+// Search by status
+const { data: confirmed } = await api.orders.search({
+  status: "confirmed",
+  from_date: "2024-01-01",
+});
+
+// Create an order
+try {
+  const { data: order } = await api.orders.create({
+    customer_id: "550e8400-e29b-41d4-a716-446655440000",
+    shipping_address: "123 Main St",
+    items: [
+      { product_id: "...", quantity: 2 },
+      { product_id: "...", quantity: 1 },
+    ],
+  });
+  console.log("Created order:", order.number);
+} catch (error) {
+  if (error instanceof ZodraFieldError) {
+    console.log("Validation errors:", error.errors);
+  }
+}
+
+// Confirm an order
+try {
+  const { data: order } = await api.orders.confirm({ id: "..." });
+  console.log("Order confirmed:", order.status);
+} catch (error) {
+  if (error instanceof ZodraBusinessError) {
+    console.log("Cannot confirm:", error.message);
+  }
+}
+```

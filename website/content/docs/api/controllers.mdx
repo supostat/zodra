@@ -1,0 +1,172 @@
+---
+title: Controllers
+description: Use the Zodra::Controller mixin for validated params and typed responses
+---
+
+# Controllers
+
+The `Zodra::Controller` mixin connects your Rails controllers to contracts, providing validated params and structured responses.
+
+## Setup
+
+```ruby title="app/controllers/api/v1/products_controller.rb"
+module Api
+  module V1
+    class ProductsController < ApplicationController
+      include Zodra::Controller
+
+      zodra_contract :products
+    end
+  end
+end
+```
+
+### `zodra_contract`
+
+Associates the controller with a contract. The contract name determines which action definitions (params, response, errors) apply to each controller action.
+
+If omitted, Zodra infers the contract from the controller name.
+
+## `zodra_params`
+
+Returns the validated and coerced request params, parsed according to the action's params definition:
+
+```ruby
+def create
+  params = zodra_params
+  # params is a hash with validated, typed values
+  # Unknown keys raise an error (when strict_params is true)
+  product = Product.create!(params)
+  zodra_respond(product, status: :created)
+end
+```
+
+For actions without a params definition, `zodra_params` returns an empty hash.
+
+## `zodra_respond`
+
+Renders a single object wrapped in `{ data: ... }`:
+
+```ruby
+def show
+  product = Product.find(zodra_params[:id])
+  zodra_respond(product)
+  # Response: { data: { id: "...", name: "...", ... } }
+end
+```
+
+With a custom status:
+
+```ruby
+zodra_respond(product, status: :created)
+```
+
+For no-content responses:
+
+```ruby
+def destroy
+  Product.find(zodra_params[:id]).destroy!
+  head :no_content
+end
+```
+
+## `zodra_respond_collection`
+
+Renders an array wrapped in `{ data: [...], meta: { ... } }`:
+
+```ruby
+def index
+  products = Product.all
+  zodra_respond_collection(products)
+  # Response: { data: [...], meta: { ... } }
+end
+```
+
+With custom meta:
+
+```ruby
+zodra_respond_collection(products, meta: { total: products.count })
+```
+
+## `zodra_rescue`
+
+Maps exceptions to error codes defined in the contract:
+
+```ruby
+class OrdersController < ApplicationController
+  include Zodra::Controller
+
+  zodra_contract :orders
+
+  zodra_rescue :confirm, InvalidTransitionError, as: :invalid_transition
+  zodra_rescue :cancel, InvalidTransitionError, as: :invalid_transition
+
+  def confirm
+    order = Order.find(zodra_params[:id])
+    order.confirm!
+    zodra_respond(order.reload)
+  end
+end
+```
+
+When `InvalidTransitionError` is raised, Zodra renders:
+
+```json
+{
+  "error": {
+    "code": "invalid_transition",
+    "message": "..."
+  }
+}
+```
+
+The HTTP status comes from the error definition in the contract.
+
+See [Error Handling](/docs/contracts/errors) for the full error flow.
+
+## `zodra_errors`
+
+Returns field-level validation errors:
+
+```ruby
+zodra_errors({ name: ["can't be blank"] }, status: :unprocessable_entity)
+# Response: { errors: { name: ["can't be blank"] } }
+```
+
+## Full controller example
+
+```ruby title="app/controllers/api/v1/customers_controller.rb"
+module Api
+  module V1
+    class CustomersController < ApplicationController
+      include Zodra::Controller
+
+      zodra_contract :customers
+
+      def index
+        zodra_respond_collection(Customer.all)
+      end
+
+      def show
+        zodra_respond(Customer.find(zodra_params[:id]))
+      end
+
+      def create
+        customer = Customer.create!(zodra_params)
+        zodra_respond(customer, status: :created)
+      end
+
+      def update
+        customer = Customer.find(zodra_params[:id])
+        customer.update!(zodra_params.except(:id))
+        zodra_respond(customer)
+      end
+
+      def destroy
+        Customer.find(zodra_params[:id]).destroy!
+        head :no_content
+      end
+    end
+  end
+end
+```

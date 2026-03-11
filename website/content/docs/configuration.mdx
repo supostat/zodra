@@ -1,0 +1,66 @@
+---
+title: Configuration
+description: Configure Zodra output paths, key formats, and validation behavior
+---
+
+# Configuration
+
+Configure Zodra in an initializer:
+
+```ruby title="config/initializers/zodra.rb"
+Zodra.configure do |config|
+  config.output_path = "app/javascript/types"
+  config.key_format = :camel
+  config.zod_import = "zod"
+  config.strict_params = true
+end
+```
+
+## Options
+
+### `output_path`
+
+Directory where generated TypeScript files are written.
+
+**Default:** `"app/javascript/types"`
+
+```ruby
+config.output_path = "frontend/src/zodra"
+```
+
+### `key_format`
+
+Controls how Ruby snake_case keys are transformed in generated output.
+
+**Default:** `:camel`
+
+| Value    | Ruby key         | Generated key    |
+|----------|-----------------|-----------------|
+| `:camel` | `created_at`    | `createdAt`     |
+| `:snake` | `created_at`    | `created_at`    |
+| `:keep`  | `created_at`    | `created_at`    |
+
+```ruby
+config.key_format = :snake
+```
+
+### `zod_import`
+
+The import path for Zod in generated schemas.
+
+**Default:** `"zod"`
+
+```ruby
+# Use a custom Zod wrapper
+config.zod_import = "@/lib/zod"
+```
+
+### `strict_params`
+
+When `true`, unknown keys in request params cause a validation error. When `false`, unknown keys are silently ignored.
+
+**Default:** `true`
+
+```ruby
+config.strict_params = false
+```

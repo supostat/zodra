@@ -1,4 +1,20 @@
 {
   "title": "Documentation",
-  "pages": ["---Getting Started---", "index", "installation"]
+  "pages": [
+    "---Getting Started---",
+    "index",
+    "installation",
+    "quickstart",
+    "configuration",
+    "---Types---",
+    "...types",
+    "---Contracts---",
+    "...contracts",
+    "---API & Routing---",
+    "...api",
+    "---TypeScript Client---",
+    "...client",
+    "---Guides---",
+    "...guides"
+  ]
 }

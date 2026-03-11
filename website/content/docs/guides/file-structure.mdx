@@ -1,0 +1,123 @@
+---
+title: File Structure
+description: Conventions for organizing Zodra definitions in your Rails project
+---
+
+# File Structure
+
+Zodra follows conventions for where definitions live in your Rails project.
+
+## Directory layout
+
+```
+app/
+├── types/                    # Type definitions
+│   ├── customer.rb           # Zodra.type :customer
+│   ├── product.rb            # Zodra.type :product
+│   ├── order.rb              # Zodra.type :order
+│   ├── order_status.rb       # Zodra.enum :order_status
+│   ├── payment_method.rb     # Zodra.union :payment_method
+│   └── custom_scalars.rb     # Zodra.scalar definitions
+│
+├── contracts/                # Contract definitions
+│   ├── customers.rb          # Zodra.contract :customers
+│   ├── products.rb           # Zodra.contract :products
+│   └── orders.rb             # Zodra.contract :orders
+│
+├── controllers/
+│   └── api/
+│       └── v1/               # Versioned controllers
+│           ├── customers_controller.rb
+│           ├── products_controller.rb
+│           └── orders_controller.rb
+│
+config/
+├── apis/                     # API route definitions
+│   └── v1.rb                 # Zodra.api "/api/v1"
+│
+├── routes.rb                 # zodra_routes helper
+│
+└── initializers/
+    └── zodra.rb              # Zodra.configure
+```
+
+## Conventions
+
+### One definition per file
+
+Each type, enum, or union gets its own file in `app/types/`:
+
+```ruby title="app/types/customer.rb"
+Zodra.type :customer do
+  # ...
+end
+```
+
+**Exception:** related scalars can share a file:
+
+```ruby title="app/types/custom_scalars.rb"
+Zodra.scalar :money, base: :decimal do |value|
+  BigDecimal(value.to_s).round(2)
+end
+
+Zodra.scalar :slug, base: :string do |value|
+  value.to_s.downcase.gsub(/[^a-z0-9\-]/, "-")
+end
+```
+
+### Contracts match resources
+
+Contract names typically match the resource name (plural):
+
+| Resource    | Contract file              | Contract name  |
+|------------|---------------------------|---------------|
+| Products    | `app/contracts/products.rb` | `:products`    |
+| Customers   | `app/contracts/customers.rb`| `:customers`   |
+| Orders      | `app/contracts/orders.rb`   | `:orders`      |
+| Settings    | `app/contracts/settings.rb` | `:settings`    |
+
+### API versions
+
+Each API version gets its own file in `config/apis/`:
+
+```ruby title="config/apis/v1.rb"
+Zodra.api "/api/v1" do
+  resources :products
+  resources :customers
+end
+```
+
+```ruby title="config/apis/v2.rb"
+Zodra.api "/api/v2" do
+  resources :products
+  resources :customers
+  resources :analytics  # new in v2
+end
+```
+
+Types are shared between versions — only the API definition and contracts determine which endpoints exist.
+
+### Controller namespacing
+
+Controllers follow Rails namespacing conventions matching the API base path:
+
+```
+/api/v1/products → Api::V1::ProductsController
+/api/v2/products → Api::V2::ProductsController
+```
+
+## Generated output
+
+After running `rails zodra:export`, generated TypeScript files appear in the configured `output_path`:
+
+```
+app/javascript/types/          # default output_path
+├── schemas/
+│   ├── customer.ts
+│   ├── product.ts
+│   ├── order.ts
+│   └── order_status.ts
+└── contracts.ts
+```
+
+These files should be committed to version control so the frontend can import them directly.

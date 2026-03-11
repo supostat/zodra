@@ -1,0 +1,132 @@
+---
+title: Error Handling
+description: Handle API errors with typed error classes
+---
+
+# Error Handling
+
+The Zodra client parses error responses into typed error classes, making it easy to handle different failure modes.
+
+## Error classes
+
+### `ZodraClientError`
+
+Base error for all HTTP errors. Thrown for unexpected status codes:
+
+```typescript
+import { ZodraClientError } from "@zodra/client";
+
+try {
+  await api.products.show({ id: "..." });
+} catch (error) {
+  if (error instanceof ZodraClientError) {
+    console.log(error.status);  // HTTP status code
+    console.log(error.body);    // raw response body
+    console.log(error.message); // error message
+  }
+}
+```
+
+### `ZodraFieldError`
+
+Thrown for field-level validation errors (HTTP 422 with `errors` key):
+
+```typescript
+import { ZodraFieldError } from "@zodra/client";
+
+try {
+  await api.products.create({ name: "", price: -1 });
+} catch (error) {
+  if (error instanceof ZodraFieldError) {
+    console.log(error.errors);
+    // { name: ["must be at least 1 character"], price: ["must be >= 0"] }
+
+    // Display field-specific errors
+    for (const [field, messages] of Object.entries(error.errors)) {
+      console.log(`${field}: ${messages.join(", ")}`);
+    }
+  }
+}
+```
+
+### `ZodraBusinessError`
+
+Thrown for business logic errors (response with `error.code`):
+
+```typescript
+import { ZodraBusinessError } from "@zodra/client";
+
+try {
+  await api.orders.confirm({ id: "..." });
+} catch (error) {
+  if (error instanceof ZodraBusinessError) {
+    console.log(error.code);    // "invalid_transition"
+    console.log(error.message); // "Order cannot be confirmed"
+    console.log(error.status);  // 422
+  }
+}
+```
+
+### `ZodraValidationError`
+
+Thrown when client-side validation fails (when `validateParams` or `validateResponse` is enabled):
+
+```typescript
+import { ZodraValidationError } from "@zodra/client";
+
+const api = createApiClient({
+  baseUrl: "/api/v1",
+  contracts,
+  validateParams: true,
+});
+
+try {
+  // @ts-expect-error — bypassing TypeScript with wrong types
+  await api.products.create({ name: 123 });
+} catch (error) {
+  if (error instanceof ZodraValidationError) {
+    console.log(error.issues); // Zod validation issues
+  }
+}
+```
+
+## Handling all error types
+
+```typescript
+import {
+  ZodraFieldError,
+  ZodraBusinessError,
+  ZodraValidationError,
+  ZodraClientError,
+} from "@zodra/client";
+
+try {
+  await api.orders.create(orderData);
+} catch (error) {
+  if (error instanceof ZodraFieldError) {
+    // Show field errors in the form
+    setFormErrors(error.errors);
+  } else if (error instanceof ZodraBusinessError) {
+    // Show business error message
+    showToast(error.message);
+  } else if (error instanceof ZodraValidationError) {
+    // Client-side validation failed (bug in your code)
+    console.error("Validation failed:", error.issues);
+  } else if (error instanceof ZodraClientError) {
+    // Other HTTP errors (500, 403, etc.)
+    showToast(`Request failed: ${error.status}`);
+  }
+}
+```
+
+## Error hierarchy
+
+All error classes extend `ZodraClientError`, which extends `Error`:
+
+```
+Error
+└── ZodraClientError        (status, body)
+    ├── ZodraValidationError (issues)
+    ├── ZodraFieldError      (errors)
+    └── ZodraBusinessError   (code)
+```

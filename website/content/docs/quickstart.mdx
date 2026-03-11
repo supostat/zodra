@@ -1,0 +1,130 @@
+---
+title: Quickstart
+description: Get up and running with Zodra in 5 minutes
+---
+
+# Quickstart
+
+This guide walks you through defining a type in Ruby, generating TypeScript schemas, and using them in a frontend client.
+
+## 1. Define a type
+
+Create a file in `app/types/`:
+
+```ruby title="app/types/product.rb"
+Zodra.type :product do
+  uuid :id
+  string :name, min: 1, max: 255
+  decimal :price, min: 0
+  boolean :published, default: false
+  timestamps
+end
+```
+
+## 2. Define a contract
+
+Contracts describe what your API actions accept and return:
+
+```ruby title="app/contracts/products.rb"
+Zodra.contract :products do
+  action :index do
+    response :product, collection: true
+  end
+
+  action :show do
+    params do
+      uuid :id
+    end
+    response :product
+  end
+
+  action :create do
+    params do
+      string :name, min: 1
+      decimal :price, min: 0
+      boolean :published, default: false
+    end
+    response :product
+  end
+end
+```
+
+## 3. Define API routes
+
+```ruby title="config/apis/v1.rb"
+Zodra.api "/api/v1" do
+  resources :products, only: %i[index show create]
+end
+```
+
+Add the route helper to your routes file:
+
+```ruby title="config/routes.rb"
+Rails.application.routes.draw do
+  zodra_routes
+end
+```
+
+## 4. Implement the controller
+
+```ruby title="app/controllers/api/v1/products_controller.rb"
+module Api
+  module V1
+    class ProductsController < ApplicationController
+      include Zodra::Controller
+
+      zodra_contract :products
+
+      def index
+        zodra_respond_collection(Product.all)
+      end
+
+      def show
+        zodra_respond(Product.find(zodra_params[:id]))
+      end
+
+      def create
+        product = Product.create!(zodra_params)
+        zodra_respond(product, status: :created)
+      end
+    end
+  end
+end
+```
+
+## 5. Generate TypeScript
+
+Run the export task to generate Zod schemas and contract definitions:
+
+```bash
+rails zodra:export
+```
+
+This creates TypeScript files in your configured output path.
+
+## 6. Use in frontend
+
+```typescript title="src/api.ts"
+import { createApiClient } from "@zodra/client";
+import { contracts } from "./zodra/contracts";
+
+const api = createApiClient({
+  baseUrl: "/api/v1",
+  contracts,
+});
+
+// Fully typed — params and response inferred from your Ruby definitions
+const { data: products } = await api.products.index({});
+const { data: product } = await api.products.create({
+  name: "Widget",
+  price: 9.99,
+  published: true,
+});
+```
+
+## Next steps
+
+- [Types](/docs/types/basics) — all primitive types and options
+- [Contracts](/docs/contracts/defining) — params, responses, and errors
+- [Routing](/docs/api/routing) — resources, member/collection actions
+- [Client](/docs/client/setup) — client configuration and usage

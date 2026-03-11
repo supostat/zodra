@@ -1,0 +1,89 @@
+---
+title: Contract-Scoped Types
+description: Define types, enums, and unions local to a contract
+---
+
+# Contract-Scoped Types
+
+Contracts can define their own types that are scoped to the contract. These types are resolved first within the contract, with fallback to the global TypeRegistry.
+
+## Scoped types
+
+```ruby title="app/contracts/invoices.rb"
+Zodra.contract :invoices do
+  type :invoice_line do
+    string :description
+    integer :quantity, min: 1
+    decimal :unit_price, min: 0
+    decimal :total
+  end
+
+  type :invoice_create_params do
+    uuid :customer_id
+    array :lines, of: :invoice_line
+    string? :notes
+  end
+
+  action :create do
+    params from: :invoice_create_params
+    response :invoice
+  end
+end
+```
+
+The types `:invoice_line` and `:invoice_create_params` are only defined within the `:invoices` contract scope. They won't pollute the global registry if similar names exist elsewhere.
+
+## Scoped enums
+
+```ruby
+Zodra.contract :payments do
+  enum :payment_status, values: %i[pending processing completed failed]
+
+  action :show do
+    params do
+      uuid :id
+    end
+    response do
+      uuid :id
+      payment_status :status
+      decimal :amount
+    end
+  end
+end
+```
+
+## Scoped unions
+
+```ruby
+Zodra.contract :notifications do
+  union :channel, discriminator: :type do
+    variant :email do
+      string :address
+    end
+    variant :sms do
+      string :phone_number
+    end
+  end
+
+  action :send do
+    params do
+      uuid :user_id
+      string :message
+      reference :channel
+    end
+    response do
+      uuid :id
+      string :status
+    end
+  end
+end
+```
+
+## Resolution order
+
+When a type name is used inside a contract (in params, response, or `from:`):
+
+1. **Contract scope** — check types defined within this contract
+2. **Global TypeRegistry** — fall back to globally defined types
+
+This means a contract can override a global type name for its own use without affecting other contracts.

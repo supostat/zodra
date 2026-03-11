@@ -1,0 +1,123 @@
+---
+title: Type Basics
+description: Define object types with primitive fields, validations, and defaults
+---
+
+# Type Basics
+
+Types are the foundation of Zodra. Define them in `app/types/` and they become the single source of truth for your backend and frontend.
+
+## Defining a type
+
+```ruby title="app/types/customer.rb"
+Zodra.type :customer do
+  uuid :id
+  string :name
+  string :email
+  string? :phone
+  timestamps
+end
+```
+
+Each type is registered globally in the TypeRegistry and can be referenced by name from contracts, other types, and generated output.
+
+## Primitive types
+
+| Method     | Ruby type   | Zod output           |
+|-----------|------------|---------------------|
+| `string`   | `String`    | `z.string()`         |
+| `integer`  | `Integer`   | `z.number().int()`   |
+| `decimal`  | `BigDecimal`| `z.number()`         |
+| `number`   | `Numeric`   | `z.number()`         |
+| `boolean`  | `Boolean`   | `z.boolean()`        |
+| `datetime` | `DateTime`  | `z.string().datetime()` |
+| `date`     | `Date`      | `z.string().date()`  |
+| `uuid`     | `String`    | `z.string().uuid()`  |
+| `binary`   | `String`    | `z.string()`         |
+
+## Optional fields
+
+Append `?` to any type method to make the field optional:
+
+```ruby
+Zodra.type :profile do
+  string :name           # required
+  string? :bio           # optional
+  integer? :age          # optional
+end
+```
+
+This is equivalent to passing `optional: true`:
+
+```ruby
+string :bio, optional: true
+```
+
+## Nullable fields
+
+A nullable field accepts `nil` as a value but is still required in the payload:
+
+```ruby
+Zodra.type :customer do
+  string :notes, nullable: true
+end
+```
+
+Optional and nullable are independent — a field can be both:
+
+```ruby
+string? :notes, nullable: true  # can be omitted OR set to nil
+```
+
+## Validations
+
+### `min` / `max`
+
+For strings, validates length. For numbers, validates value:
+
+```ruby
+string :name, min: 1, max: 255    # length between 1 and 255
+integer :age, min: 0, max: 150    # value between 0 and 150
+decimal :price, min: 0            # non-negative
+```
+
+### `format`
+
+Adds format validation hint (used in generated TypeScript):
+
+```ruby
+string :email, format: "email"
+```
+
+### `enum`
+
+Restricts values to a fixed set:
+
+```ruby
+string :status, enum: %w[draft published archived]
+integer :priority, enum: [1, 2, 3]
+```
+
+For reusable enums, see [Enums and Unions](/docs/types/enums-and-unions).
+
+### `default`
+
+Sets a default value:
+
+```ruby
+boolean :published, default: false
+string :role, default: "member"
+integer :priority, default: 0
+```
+
+## Timestamps
+
+The `timestamps` shortcut adds `created_at` and `updated_at` datetime fields:
+
+```ruby
+Zodra.type :post do
+  uuid :id
+  string :title
+  timestamps  # adds created_at and updated_at
+end
+```

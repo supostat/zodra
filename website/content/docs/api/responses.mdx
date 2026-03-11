@@ -1,0 +1,86 @@
+---
+title: Response Format
+description: Zodra's response envelope and serialization conventions
+---
+
+# Response Format
+
+All Zodra responses follow a consistent envelope structure.
+
+## Single object
+
+```ruby
+zodra_respond(product)
+```
+
+```json
+{
+  "data": {
+    "id": "550e8400-e29b-41d4-a716-446655440000",
+    "name": "Widget",
+    "price": 9.99,
+    "published": true,
+    "createdAt": "2024-01-01T00:00:00Z",
+    "updatedAt": "2024-01-01T00:00:00Z"
+  }
+}
+```
+
+## Collection
+
+```ruby
+zodra_respond_collection(products, meta: { total: 42 })
+```
+
+```json
+{
+  "data": [
+    { "id": "...", "name": "Widget", "price": 9.99 },
+    { "id": "...", "name": "Gadget", "price": 19.99 }
+  ],
+  "meta": {
+    "total": 42
+  }
+}
+```
+
+## Validation errors
+
+Returned automatically when `zodra_params` fails validation:
+
+```json
+{
+  "errors": {
+    "name": ["must be at least 1 character"],
+    "price": ["must be greater than or equal to 0"]
+  }
+}
+```
+
+HTTP status: `422 Unprocessable Entity`.
+
+## Business errors
+
+Returned by `zodra_rescue` when a mapped exception is raised:
+
+```json
+{
+  "error": {
+    "code": "invalid_transition",
+    "message": "Order cannot be confirmed in its current state"
+  }
+}
+```
+
+HTTP status: defined in the contract error declaration.
+
+## Serialization
+
+Response objects are serialized based on the action's response definition in the contract:
+
+- Only fields defined in the response type are included
+- Key format follows the `key_format` configuration (default: camelCase)
+- Nested references and arrays are serialized recursively
+- Fields not present on the object are omitted
+
+This means the contract's response definition acts as a whitelist — no accidental data leaks.

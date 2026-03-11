@@ -1,0 +1,157 @@
+---
+title: Defining Contracts
+description: Define API contracts with actions, params, and responses
+---
+
+# Defining Contracts
+
+Contracts describe **what** your API does — the params each action accepts and the response it returns. They are separate from routing (which describes **where** actions live).
+
+## Basic contract
+
+```ruby title="app/contracts/products.rb"
+Zodra.contract :products do
+  action :index do
+    response :product, collection: true
+  end
+
+  action :show do
+    params do
+      uuid :id
+    end
+    response :product
+  end
+
+  action :create do
+    params do
+      string :name, min: 1
+      decimal :price, min: 0
+      boolean :published, default: false
+    end
+    response :product
+  end
+end
+```
+
+## Actions
+
+Each `action` block defines a single API endpoint with its params and response:
+
+```ruby
+action :create do
+  params { ... }
+  response :product
+  error :validation_failed, status: 422
+end
+```
+
+## Params
+
+Params define the expected request payload. They use the same DSL as types:
+
+```ruby
+action :create do
+  params do
+    string :name, min: 1, max: 255
+    decimal :price, min: 0
+    uuid :customer_id
+    string? :description          # optional
+    boolean :published, default: false
+  end
+end
+```
+
+### Params from existing type
+
+Reuse an existing type definition with `from:`:
+
+```ruby
+action :create do
+  params from: :customer, omit: %i[id created_at updated_at]
+  response :customer
+end
+```
+
+Supports the same derivation options as types: `from:`, `pick:`, `omit:`, `partial:`.
+
+```ruby
+# PATCH — all fields optional
+action :update do
+  params from: :customer, omit: %i[id created_at updated_at], partial: true
+  response :customer
+end
+```
+
+### Strict params
+
+By default, unknown keys in the request body cause a validation error. This prevents typos and unexpected data from slipping through. Configure globally with `strict_params` in [Configuration](/docs/configuration).
+
+## Response
+
+Define what an action returns:
+
+### Reference type
+
+```ruby
+action :show do
+  response :product
+end
+```
+
+Returns `{ data: { ...product } }`.
+
+### Collection
+
+```ruby
+action :index do
+  response :product, collection: true
+end
+```
+
+Returns `{ data: [{ ...product }, ...], meta: { ... } }`.
+
+### Inline response
+
+Define the response structure directly:
+
+```ruby
+action :show do
+  response do
+    string :store_name
+    string :currency
+    boolean :maintenance_mode
+  end
+end
+```
+
+## Full example
+
+```ruby title="app/contracts/orders.rb"
+Zodra.contract :orders do
+  action :index do
+    response :order, collection: true
+  end
+
+  action :show do
+    params do
+      uuid :id
+    end
+    response :order
+  end
+
+  action :create do
+    params from: :order_input
+    response :order
+    error :validation_failed, status: 422
+  end
+
+  action :search do
+    params do
+      order_status? :status
+      date? :from_date
+      date? :to_date
+    end
+    response :order, collection: true
+  end
+end
+```

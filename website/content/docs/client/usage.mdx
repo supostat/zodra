@@ -1,0 +1,88 @@
+---
+title: Client Usage
+description: Make typed API calls with the Zodra client
+---
+
+# Client Usage
+
+Once your client is set up, each contract becomes a property on the client with typed action methods.
+
+## Calling actions
+
+```typescript
+import { createApiClient } from "@zodra/client";
+import { contracts } from "./zodra/contracts";
+
+const api = createApiClient({
+  baseUrl: "/api/v1",
+  contracts,
+});
+
+// GET /api/v1/products
+const { data: products } = await api.products.index({});
+
+// GET /api/v1/products/:id
+const { data: product } = await api.products.show({
+  id: "550e8400-e29b-41d4-a716-446655440000",
+});
+
+// POST /api/v1/products
+const { data: created } = await api.products.create({
+  name: "Widget",
+  price: 9.99,
+  published: true,
+});
+
+// PATCH /api/v1/products/:id
+const { data: updated } = await api.products.update({
+  id: "550e8400-e29b-41d4-a716-446655440000",
+  name: "Super Widget",
+});
+
+// DELETE /api/v1/products/:id
+await api.products.destroy({
+  id: "550e8400-e29b-41d4-a716-446655440000",
+});
+```
+
+## Path params
+
+Path parameters (like `:id`) are automatically interpolated from the params object. The remaining params are sent as the request body (POST/PATCH/PUT) or query string (GET/DELETE):
+
+```typescript
+// Contract defines: path: "/orders/:id/confirm", method: "PATCH"
+await api.orders.confirm({ id: "abc-123" });
+// → PATCH /api/v1/orders/abc-123/confirm
+```
+
+## Query params
+
+For GET and DELETE requests, non-path params are sent as query string parameters:
+
+```typescript
+// GET /api/v1/orders/search?status=confirmed&from_date=2024-01-01
+const { data: orders } = await api.orders.search({
+  status: "confirmed",
+  from_date: "2024-01-01",
+});
+```
+
+## Response shape
+
+All responses are wrapped in `{ data: ... }`:
+
+```typescript
+const { data } = await api.products.show({ id: "..." });
+// data is typed as Product
+```
+
+Collection responses include `data` as an array:
+
+```typescript
+const { data } = await api.products.index({});
+// data is typed as Product[]
+```
+
+## Error handling
+
+See [Error Handling](/docs/client/error-handling) for catching and handling API errors.

@@ -1,0 +1,74 @@
+---
+title: Custom Scalars
+description: Register custom scalar types with coercion logic
+---
+
+# Custom Scalars
+
+Custom scalars extend the built-in primitive types with domain-specific behavior and coercion.
+
+## Defining a scalar
+
+```ruby title="app/types/custom_scalars.rb"
+Zodra.scalar :money, base: :decimal do |value|
+  BigDecimal(value.to_s).round(2)
+rescue ArgumentError
+  :coercion_error
+end
+```
+
+### Parameters
+
+- `name` — the scalar name (used as a field type method)
+- `base:` — the underlying primitive type (`:string`, `:integer`, `:decimal`, `:datetime`, etc.)
+- `&block` — coercion function that transforms raw input values
+
+### Coercion errors
+
+Return `:coercion_error` from the block to signal that the value cannot be coerced. Zodra will report a validation error for that field.
+
+## Using custom scalars
+
+Once registered, the scalar becomes a field type method:
+
+```ruby title="app/types/product.rb"
+Zodra.type :product do
+  uuid :id
+  string :name
+  money :price          # required
+  money? :discount      # optional
+end
+```
+
+## Generated output
+
+Custom scalars generate their base type in TypeScript. A `money` scalar with `base: :decimal` generates `z.number()`:
+
+```typescript
+export const ProductSchema = z.object({
+  id: z.string().uuid(),
+  name: z.string(),
+  price: z.number(),
+  discount: z.number().optional(),
+});
+```
+
+## Examples
+
+### JSON scalar
+
+```ruby
+Zodra.scalar :json, base: :string do |value|
+  value.is_a?(String) ? JSON.parse(value) : value
+rescue JSON::ParserError
+  :coercion_error
+end
+```
+
+### Slug scalar
+
+```ruby
+Zodra.scalar :slug, base: :string do |value|
+  value.to_s.downcase.gsub(/[^a-z0-9\-]/, "-").gsub(/-+/, "-")
+end
+```

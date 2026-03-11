@@ -1,0 +1,141 @@
+---
+title: Routing
+description: Define API routes with resources, nested resources, and custom actions
+---
+
+# Routing
+
+API definitions describe **where** your endpoints live. They map contracts to HTTP routes.
+
+## Defining an API
+
+```ruby title="config/apis/v1.rb"
+Zodra.api "/api/v1" do
+  resources :products
+  resources :customers
+  resources :orders, only: %i[index show create]
+  resource :settings, only: %i[show update]
+end
+```
+
+## Loading routes
+
+Add the `zodra_routes` helper to your routes file:
+
+```ruby title="config/routes.rb"
+Rails.application.routes.draw do
+  zodra_routes
+end
+```
+
+This loads all API definitions from `config/apis/*.rb` and registers the routes.
+
+## Resources
+
+`resources` creates standard RESTful routes for a collection:
+
+```ruby
+resources :products
+```
+
+Generates:
+
+| HTTP Method | Path                  | Action    |
+|------------|----------------------|-----------|
+| GET        | `/api/v1/products`    | `index`   |
+| GET        | `/api/v1/products/:id`| `show`    |
+| POST       | `/api/v1/products`    | `create`  |
+| PATCH      | `/api/v1/products/:id`| `update`  |
+| DELETE     | `/api/v1/products/:id`| `destroy` |
+
+### Limiting actions
+
+```ruby
+resources :orders, only: %i[index show create]
+resources :logs, except: %i[update destroy]
+```
+
+### Options
+
+- `contract:` — contract name (defaults to resource name)
+- `controller:` — controller name
+- `only:` — whitelist of actions
+- `except:` — blacklist of actions
+
+```ruby
+resources :invoices, contract: :billing, controller: :billing_invoices
+```
+
+## Singular resource
+
+`resource` creates routes for a singleton (no index, no `:id` in paths):
+
+```ruby
+resource :settings, only: %i[show update]
+```
+
+| HTTP Method | Path                  | Action    |
+|------------|----------------------|-----------|
+| GET        | `/api/v1/settings`    | `show`    |
+| PATCH      | `/api/v1/settings`    | `update`  |
+
+## Custom actions
+
+### Member actions
+
+Actions on a specific resource (require `:id`):
+
+```ruby
+resources :orders do
+  member do
+    patch :confirm    # PATCH /api/v1/orders/:id/confirm
+    patch :cancel     # PATCH /api/v1/orders/:id/cancel
+    get :preview      # GET   /api/v1/orders/:id/preview
+  end
+end
+```
+
+Available HTTP methods: `get`, `post`, `patch`, `put`, `delete`.
+
+### Collection actions
+
+Actions on the collection (no `:id`):
+
+```ruby
+resources :orders do
+  collection do
+    get :search       # GET  /api/v1/orders/search
+    post :export      # POST /api/v1/orders/export
+  end
+end
+```
+
+## Nested resources
+
+```ruby
+resources :orders do
+  resources :items                      # /api/v1/orders/:order_id/items
+  resource :metadata, only: %i[show]    # /api/v1/orders/:order_id/metadata
+end
+```
+
+## Full example
+
+```ruby title="config/apis/v1.rb"
+Zodra.api "/api/v1" do
+  resources :products
+  resources :customers
+
+  resources :orders, only: %i[index show create] do
+    member do
+      patch :confirm
+      patch :cancel
+    end
+    collection do
+      get :search
+    end
+  end
+
+  resource :settings, only: %i[show update]
+end
+```

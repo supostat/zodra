@@ -1,0 +1,102 @@
+---
+title: Error Handling
+description: Define business errors in contracts and handle them in controllers
+---
+
+# Error Handling
+
+Zodra has three layers of error handling: param validation, business errors, and exception mapping.
+
+## Defining errors in contracts
+
+Declare possible errors for each action:
+
+```ruby title="app/contracts/orders.rb"
+Zodra.contract :orders do
+  action :confirm do
+    params do
+      uuid :id
+    end
+    response :order
+    error :not_found, status: 404
+    error :invalid_transition, status: 422
+  end
+end
+```
+
+Each error has:
+- `code` — a symbolic identifier (becomes a string in the response)
+- `status:` — the HTTP status code
+
+## Param validation errors
+
+When request params fail validation (wrong type, missing required field, value out of range), Zodra automatically responds with a `422` status and field-level errors:
+
+```json
+{
+  "errors": {
+    "name": ["must be at least 1 character"],
+    "price": ["must be greater than or equal to 0"]
+  }
+}
+```
+
+No additional code needed — this is handled by `zodra_params` in the controller.
+
+## Business errors with `zodra_rescue`
+
+Map Ruby exceptions to error codes declared in your contract:
+
+```ruby title="app/controllers/api/v1/orders_controller.rb"
+class OrdersController < ApplicationController
+  include Zodra::Controller
+
+  zodra_contract :orders
+
+  zodra_rescue :confirm, InvalidTransitionError, as: :invalid_transition
+  zodra_rescue :cancel, InvalidTransitionError, as: :invalid_transition
+
+  def confirm
+    order = Order.find(zodra_params[:id])
+    order.confirm!
+    zodra_respond(order.reload)
+  end
+end
+```
+
+When `InvalidTransitionError` is raised during `confirm`, Zodra responds with:
+
+```json
+{
+  "error": {
+    "code": "invalid_transition",
+    "message": "Order cannot be confirmed in its current state"
+  }
+}
+```
+
+The HTTP status is taken from the error definition in the contract (422 in this case).
+
+## Manual error responses
+
+Use `zodra_errors` for field-level errors that aren't from param validation:
+
+```ruby
+def create
+  invoice = Invoice.new(zodra_params)
+
+  unless invoice.valid?
+    return zodra_errors(
+      invoice.errors.messages,
+      status: :unprocessable_entity
+    )
+  end
+
+  invoice.save!
+  zodra_respond(invoice, status: :created)
+end
+```
+
+## Client-side error handling
+
+The `@zodra/client` parses error responses into typed error classes. See [Client Error Handling](/docs/client/error-handling).

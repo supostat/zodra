@@ -1,0 +1,104 @@
+---
+title: Type Composition
+description: Derive types, reference other types, and use arrays
+---
+
+# Type Composition
+
+Zodra types can reference each other, contain arrays, and derive from existing types.
+
+## References
+
+Embed one type inside another:
+
+```ruby
+Zodra.type :line_item do
+  uuid :id
+  reference :product       # embeds the :product type
+  integer :quantity, min: 1
+end
+```
+
+Specify a different type name with `to:`:
+
+```ruby
+reference :billing_address, to: :address
+```
+
+## Arrays
+
+Define array fields with `of:`:
+
+```ruby
+Zodra.type :order do
+  uuid :id
+  array :line_items, of: :line_item   # array of :line_item objects
+  array :tags, of: :string            # array of strings
+end
+```
+
+## Type derivation with `from`
+
+Create new types based on existing ones. This avoids duplicating field definitions:
+
+```ruby title="app/types/customer_summary.rb"
+Zodra.type :customer_summary, from: :customer, pick: %i[id name email]
+```
+
+### `pick` — include only specific fields
+
+```ruby
+Zodra.type :product_card, from: :product, pick: %i[id name price]
+```
+
+### `omit` — exclude specific fields
+
+```ruby
+Zodra.type :customer_input, from: :customer, omit: %i[id created_at updated_at]
+```
+
+### `partial` — make all fields optional
+
+```ruby
+Zodra.type :customer_patch, from: :customer, omit: %i[id], partial: true
+```
+
+### Combining `from` with a block
+
+Add or override fields on a derived type:
+
+```ruby
+Zodra.type :order_input, from: :order, omit: %i[id status total_amount] do
+  array :items, of: :order_item_input
+end
+```
+
+### Using `from` inside a type block
+
+You can also call `from` inside the block to merge fields from another type:
+
+```ruby
+Zodra.type :detailed_product do
+  from :product
+  string :long_description
+  array :reviews, of: :review
+end
+```
+
+## Contracts with `from`
+
+Type derivation works the same way in contract params:
+
+```ruby
+Zodra.contract :customers do
+  action :create do
+    params from: :customer, omit: %i[id registered_at created_at updated_at]
+    response :customer
+  end
+
+  action :update do
+    params from: :customer, omit: %i[id registered_at created_at updated_at], partial: true
+    response :customer
+  end
+end
+```

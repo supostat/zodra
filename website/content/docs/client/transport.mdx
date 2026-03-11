@@ -1,0 +1,115 @@
+---
+title: Custom Transport
+description: Replace the default Fetch transport with a custom HTTP handler
+---
+
+# Custom Transport
+
+By default, the Zodra client uses `fetchTransport` which wraps the browser/Node.js Fetch API. You can replace it with any HTTP implementation.
+
+## Transport interface
+
+A transport function receives a `TransportRequest` and returns a `TransportResponse`:
+
+```typescript
+type TransportRequest = {
+  url: string;
+  method: string;
+  headers: Record<string, string>;
+  body?: string;
+};
+
+type TransportResponse = {
+  status: number;
+  statusText: string;
+  body: unknown;
+};
+
+type TransportFn = (request: TransportRequest) => Promise<TransportResponse>;
+```
+
+## Default transport
+
+The built-in `fetchTransport` uses the Fetch API:
+
+```typescript
+import { fetchTransport } from "@zodra/client";
+
+// This is the default — no need to specify explicitly
+const api = createApiClient({
+  baseUrl: "/api/v1",
+  contracts,
+  transport: fetchTransport,
+});
+```
+
+## Custom transport examples
+
+### Axios
+
+```typescript
+import axios from "axios";
+import type { TransportFn } from "@zodra/client";
+
+const axiosTransport: TransportFn = async ({ url, method, headers, body }) => {
+  const response = await axios({
+    url,
+    method,
+    headers,
+    data: body ? JSON.parse(body) : undefined,
+  });
+
+  return {
+    status: response.status,
+    statusText: response.statusText,
+    body: response.data,
+  };
+};
+
+const api = createApiClient({
+  baseUrl: "/api/v1",
+  contracts,
+  transport: axiosTransport,
+});
+```
+
+### Adding authentication
+
+Wrap the default transport to inject auth headers:
+
+```typescript
+import { fetchTransport } from "@zodra/client";
+import type { TransportFn } from "@zodra/client";
+
+function authTransport(getToken: () => string): TransportFn {
+  return async (request) => {
+    return fetchTransport({
+      ...request,
+      headers: {
+        ...request.headers,
+        Authorization: `Bearer ${getToken()}`,
+      },
+    });
+  };
+}
+
+const api = createApiClient({
+  baseUrl: "/api/v1",
+  contracts,
+  transport: authTransport(() => localStorage.getItem("token") ?? ""),
+});
+```
+
+### Logging
+
+```typescript
+import { fetchTransport } from "@zodra/client";
+import type { TransportFn } from "@zodra/client";
+
+const loggingTransport: TransportFn = async (request) => {
+  console.log(`→ ${request.method} ${request.url}`);
+  const response = await fetchTransport(request);
+  console.log(`← ${response.status} ${response.statusText}`);
+  return response;
+};
+```
