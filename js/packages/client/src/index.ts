@@ -1,6 +1,11 @@
 export { createApiClient } from "./create_api_client";
 export { fetchTransport } from "./transport";
-export { ZodraClientError, ZodraValidationError } from "./errors";
+export {
+  ZodraClientError,
+  ZodraValidationError,
+  ZodraFieldError,
+  ZodraBusinessError,
+} from "./errors";
 export type {
   ApiClientConfig,
   ActionDefinition,

@@ -1,7 +1,12 @@
 import { describe, it, expect, vi } from "vitest";
 import { z } from "zod";
 import { createApiClient } from "../src/create_api_client";
-import { ZodraClientError, ZodraValidationError } from "../src/errors";
+import {
+  ZodraClientError,
+  ZodraValidationError,
+  ZodraFieldError,
+  ZodraBusinessError,
+} from "../src/errors";
 import type { TransportFn } from "../src/types";
 
 const ProductSchema = z.object({
@@ -271,5 +276,80 @@ describe("validation", () => {
     expect(
       (error as ZodraValidationError).issues.length,
     ).toBeGreaterThan(0);
+  });
+});
+
+describe("error parsing", () => {
+  it("throws ZodraFieldError on 422 with field errors", async () => {
+    const api = createApiClient({
+      baseUrl: "http://localhost:3000/api/v1",
+      contracts: { products: ProductsContract },
+      transport: mockTransport(
+        { errors: { name: ["is already taken"], price: ["must be positive"] } },
+        422,
+      ),
+    });
+
+    const error = await api.products
+      .create({ name: "dup", price: -1 })
+      .catch((e: unknown) => e);
+
+    expect(error).toBeInstanceOf(ZodraFieldError);
+    expect((error as ZodraFieldError).errors).toEqual({
+      name: ["is already taken"],
+      price: ["must be positive"],
+    });
+    expect((error as ZodraFieldError).status).toBe(422);
+  });
+
+  it("throws ZodraBusinessError on error with code and message", async () => {
+    const api = createApiClient({
+      baseUrl: "http://localhost:3000/api/v1",
+      contracts: { products: ProductsContract },
+      transport: mockTransport(
+        { error: { code: "already_finalized", message: "Invoice is already finalized" } },
+        409,
+      ),
+    });
+
+    const error = await api.products
+      .show({ id: "abc-123" })
+      .catch((e: unknown) => e);
+
+    expect(error).toBeInstanceOf(ZodraBusinessError);
+    expect((error as ZodraBusinessError).code).toBe("already_finalized");
+    expect((error as ZodraBusinessError).message).toBe("Invoice is already finalized");
+    expect((error as ZodraBusinessError).status).toBe(409);
+  });
+
+  it("falls back to ZodraClientError for unknown error shapes", async () => {
+    const api = createApiClient({
+      baseUrl: "http://localhost:3000/api/v1",
+      contracts: { products: ProductsContract },
+      transport: mockTransport("Internal Server Error", 500),
+    });
+
+    const error = await api.products
+      .show({ id: "abc-123" })
+      .catch((e: unknown) => e);
+
+    expect(error).toBeInstanceOf(ZodraClientError);
+    expect(error).not.toBeInstanceOf(ZodraFieldError);
+    expect(error).not.toBeInstanceOf(ZodraBusinessError);
+  });
+
+  it("ZodraFieldError is instanceof ZodraClientError", async () => {
+    const api = createApiClient({
+      baseUrl: "http://localhost:3000/api/v1",
+      contracts: { products: ProductsContract },
+      transport: mockTransport(
+        { errors: { name: ["taken"] } },
+        422,
+      ),
+    });
+
+    await expect(api.products.create({ name: "dup", price: 1 })).rejects.toThrow(
+      ZodraClientError,
+    );
   });
 });

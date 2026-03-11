@@ -6,11 +6,42 @@ import type {
   ContractDefinition,
   TransportFn,
 } from "./types";
-import { ZodraClientError, ZodraValidationError } from "./errors";
+import {
+  ZodraClientError,
+  ZodraValidationError,
+  ZodraFieldError,
+  ZodraBusinessError,
+} from "./errors";
 import { buildQueryString, interpolatePath } from "./path";
 import { fetchTransport } from "./transport";
 
 const BODY_METHODS = new Set(["POST", "PUT", "PATCH"]);
+
+function isFieldErrors(body: unknown): body is { errors: Record<string, string[]> } {
+  if (typeof body !== "object" || body === null || !("errors" in body)) return false;
+  const { errors } = body as { errors: unknown };
+  return typeof errors === "object" && errors !== null && !Array.isArray(errors);
+}
+
+function isBusinessError(body: unknown): body is { error: { code: string; message: string } } {
+  if (typeof body !== "object" || body === null || !("error" in body)) return false;
+  const { error } = body as { error: unknown };
+  return typeof error === "object" && error !== null && "code" in error && "message" in error;
+}
+
+function parseErrorResponse(response: { status: number; statusText: string; body: unknown }): ZodraClientError {
+  const { status, statusText, body } = response;
+
+  if (isFieldErrors(body)) {
+    return new ZodraFieldError(body.errors, { status, body });
+  }
+
+  if (isBusinessError(body)) {
+    return new ZodraBusinessError(body.error.code, body.error.message, { status, body });
+  }
+
+  return new ZodraClientError(`HTTP ${status}: ${statusText}`, { status, body });
+}
 
 function buildActionCaller(
   baseUrl: string,
@@ -49,10 +80,7 @@ function buildActionCaller(
     const response = await transport({ url: requestUrl, method, headers, body });
 
     if (response.status < 200 || response.status >= 300) {
-      throw new ZodraClientError(
-        `HTTP ${response.status}: ${response.statusText}`,
-        { status: response.status, body: response.body },
-      );
+      throw parseErrorResponse(response);
     }
 
     if (validateResponse && action.response) {

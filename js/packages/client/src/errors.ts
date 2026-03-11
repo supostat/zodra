@@ -24,3 +24,30 @@ export class ZodraValidationError extends ZodraClientError {
     this.issues = issues;
   }
 }
+
+export class ZodraFieldError extends ZodraClientError {
+  errors: Record<string, string[]>;
+
+  constructor(
+    errors: Record<string, string[]>,
+    options?: { status?: number; body?: unknown },
+  ) {
+    super("Validation failed", options);
+    this.name = "ZodraFieldError";
+    this.errors = errors;
+  }
+}
+
+export class ZodraBusinessError extends ZodraClientError {
+  code: string;
+
+  constructor(
+    code: string,
+    message: string,
+    options?: { status?: number; body?: unknown },
+  ) {
+    super(message, options);
+    this.name = "ZodraBusinessError";
+    this.code = code;
+  }
+}

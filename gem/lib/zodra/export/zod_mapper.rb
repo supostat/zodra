@@ -33,8 +33,9 @@ module Zodra
 
       def map_contract(contract)
         params_output = map_contract_params(contract)
+        error_types_output = map_contract_error_types(contract)
         descriptor_output = map_contract_descriptor(contract)
-        [params_output, descriptor_output].compact.reject(&:empty?).join("\n\n")
+        [params_output, error_types_output, descriptor_output].compact.reject(&:empty?).join("\n\n")
       end
 
       def map_contracts(contracts)
@@ -142,6 +143,20 @@ module Zodra
         end.join("\n\n")
       end
 
+      def map_contract_error_types(contract)
+        parts = contract.actions.values.filter_map do |action|
+          next if action.errors.empty?
+
+          action_name = pascal_case(action.name)
+          contract_name = pascal_case(contract.name)
+
+          codes = action.errors.values.map { |e| "'#{e[:code]}'" }.join(" | ")
+          "export type #{action_name}#{contract_name}BusinessError = { code: #{codes}; message: string };"
+        end
+
+        parts.join("\n\n")
+      end
+
       def map_contract_descriptor(contract)
         name = pascal_case(contract.name)
         return "export const #{name}Contract = {} as const;" if contract.actions.empty?
@@ -150,6 +165,10 @@ module Zodra
           params_schema = "#{pascal_case(action.name)}#{name}ParamsSchema"
           parts = ["method: '#{action.http_method.to_s.upcase}' as const", "path: '#{action.path}' as const", "params: #{params_schema}"]
           parts << "response: #{pascal_case(action.response_type)}Schema" if action.response_type
+          if action.errors.any?
+            error_entries = action.errors.values.map { |e| "{ code: '#{e[:code]}' as const, status: #{e[:status]} as const }" }
+            parts << "errors: [#{error_entries.join(', ')}] as const"
+          end
           "  #{action.name}: { #{parts.join(', ')} }"
         end
 

@@ -160,6 +160,47 @@ RSpec.describe Zodra::Export::ZodMapper do
 
       expect(result).to eq("export const EmptyContract = {} as const;")
     end
+
+    it "generates business error types for actions with errors" do
+      contract = build_contract(:invoices) do |c|
+        action = c.add_action(:create)
+        action.http_method = :post
+        action.path = "/invoices"
+        action.response_type = :invoice
+        action.add_error(:already_finalized, status: 409)
+        action.add_error(:insufficient_balance, status: 422)
+      end
+
+      result = mapper.map_contract(contract)
+
+      expect(result).to include("export type CreateInvoicesBusinessError = { code: 'already_finalized' | 'insufficient_balance'; message: string };")
+    end
+
+    it "includes errors in contract descriptor" do
+      contract = build_contract(:invoices) do |c|
+        action = c.add_action(:create)
+        action.http_method = :post
+        action.path = "/invoices"
+        action.add_error(:already_finalized, status: 409)
+      end
+
+      result = mapper.map_contract(contract)
+
+      expect(result).to include("errors: [{ code: 'already_finalized' as const, status: 409 as const }] as const")
+    end
+
+    it "skips error types for actions without errors" do
+      contract = build_contract(:search) do |c|
+        action = c.add_action(:query)
+        action.http_method = :get
+        action.path = "/search"
+      end
+
+      result = mapper.map_contract(contract)
+
+      expect(result).not_to include("BusinessError")
+      expect(result).not_to include("errors:")
+    end
   end
 
   private
