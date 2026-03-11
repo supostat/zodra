@@ -190,9 +190,8 @@ RSpec.describe "Export pipeline", :acceptance do
         decimal :amount
       end
 
-      Zodra.contract :invoices do
+      contract = Zodra.contract :invoices do
         action :create do
-          post "/invoices"
           params do
             string :number, min: 1
             decimal :amount, min: 0
@@ -201,13 +200,15 @@ RSpec.describe "Export pipeline", :acceptance do
         end
 
         action :show do
-          get "/invoices/:id"
           params do
             uuid :id
           end
           response :invoice
         end
       end
+
+      contract.find_action(:create).tap { |a| a.http_method = :post; a.path = "/invoices" }
+      contract.find_action(:show).tap { |a| a.http_method = :get; a.path = "/invoices/:id" }
     end
 
     it "exports contract params as Zod schemas" do
@@ -246,14 +247,15 @@ RSpec.describe "Export pipeline", :acceptance do
     end
 
     it "handles action without response in descriptor" do
-      Zodra.contract :search do
+      contract = Zodra.contract :search do
         action :query do
-          get "/search"
           params do
             string :q, min: 1
           end
         end
       end
+
+      contract.find_action(:query).tap { |a| a.http_method = :get; a.path = "/search" }
 
       result = Zodra::Export.generate(:zod)
 

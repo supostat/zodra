@@ -47,6 +47,12 @@ module Zodra
       contract
     end
 
+    def api(base_path, &block)
+      api_definition = ApiRegistry.global.register(base_path)
+      ApiBuilder.new(api_definition).instance_eval(&block) if block
+      api_definition
+    end
+
     private
 
     def setup_autoload

@@ -10,5 +10,9 @@ module Zodra
       types_path = app.root.join("app", "types")
       app.autoloaders.main.push_dir(types_path) if types_path.exist?
     end
+
+    initializer "zodra.route_helper" do
+      ActionDispatch::Routing::Mapper.include(Zodra::RouteHelper)
+    end
   end
 end

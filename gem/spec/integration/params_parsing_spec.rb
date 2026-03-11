@@ -9,7 +9,6 @@ RSpec.describe "Params parsing pipeline", :acceptance do
   it "parses and validates params from contract action" do
     Zodra.contract :invoices do
       action :create do
-        post "/invoices"
         params do
           string :number, min: 1
           decimal :amount, min: 0
@@ -34,7 +33,6 @@ RSpec.describe "Params parsing pipeline", :acceptance do
   it "returns field-level errors for invalid params" do
     Zodra.contract :invoices do
       action :create do
-        post "/invoices"
         params do
           string :number, min: 3
           decimal :amount, min: 0
@@ -59,7 +57,6 @@ RSpec.describe "Params parsing pipeline", :acceptance do
   it "handles required, optional, and default values" do
     Zodra.contract :users do
       action :create do
-        post "/users"
         params do
           string :name
           string? :nickname
@@ -84,7 +81,6 @@ RSpec.describe "Params parsing pipeline", :acceptance do
   it "returns error for missing required param" do
     Zodra.contract :users do
       action :create do
-        post "/users"
         params do
           string :name
         end
@@ -102,7 +98,6 @@ RSpec.describe "Params parsing pipeline", :acceptance do
   it "rejects unknown params in strict mode" do
     Zodra.contract :users do
       action :create do
-        post "/users"
         params do
           string :name
         end
@@ -124,7 +119,6 @@ RSpec.describe "Params parsing pipeline", :acceptance do
   it "filters unknown params in non-strict mode" do
     Zodra.contract :users do
       action :create do
-        post "/users"
         params do
           string :name
         end
@@ -146,7 +140,6 @@ RSpec.describe "Params parsing pipeline", :acceptance do
   it "handles nullable params" do
     Zodra.contract :profiles do
       action :update do
-        patch "/profiles/:id"
         params do
           string :bio, nullable: true
         end
@@ -167,7 +160,6 @@ RSpec.describe "Params parsing pipeline", :acceptance do
   it "handles default: false correctly" do
     Zodra.contract :settings do
       action :update do
-        patch "/settings"
         params do
           boolean :active, default: false
         end
@@ -185,7 +177,6 @@ RSpec.describe "Params parsing pipeline", :acceptance do
   it "coerces array params" do
     Zodra.contract :orders do
       action :batch do
-        post "/orders/batch"
         params do
           array :ids, of: :integer
         end

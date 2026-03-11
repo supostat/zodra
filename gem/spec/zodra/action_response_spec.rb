@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 RSpec.describe "Action response definition" do
-  after do
+  before do
     Zodra::ContractRegistry.global.clear!
     Zodra::TypeRegistry.global.clear!
   end
@@ -9,7 +9,6 @@ RSpec.describe "Action response definition" do
   it "defines inline response with block" do
     contract = Zodra.contract :invoices do
       action :show do
-        get "/invoices/:id"
         response do
           string :number
           decimal :amount
@@ -30,7 +29,6 @@ RSpec.describe "Action response definition" do
 
     contract = Zodra.contract :invoices do
       action :show do
-        get "/invoices/:id"
         response :invoice
       end
     end
@@ -49,7 +47,6 @@ RSpec.describe "Action response definition" do
       end
 
       action :show do
-        get "/invoices/:id"
         response :invoice
       end
     end
@@ -63,7 +60,6 @@ RSpec.describe "Action response definition" do
   it "marks action as collection" do
     contract = Zodra.contract :invoices do
       action :index do
-        get "/invoices"
         response(collection: true) do
           string :number
           decimal :amount
@@ -78,7 +74,6 @@ RSpec.describe "Action response definition" do
   it "defaults to non-collection" do
     contract = Zodra.contract :invoices do
       action :show do
-        get "/invoices/:id"
         response do
           string :number
         end
@@ -101,7 +96,6 @@ RSpec.describe "Action response definition" do
       end
 
       action :create do
-        post "/invoices"
         response do
           reference :invoice
           array :rota_shifts, of: :rota_shift

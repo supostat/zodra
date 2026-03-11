@@ -15,7 +15,6 @@ RSpec.describe "Contract DSL", :acceptance do
 
     Zodra.contract :invoices do
       action :create do
-        post "/invoices"
         params do
           string :number, min: 1
           decimal :amount, min: 0
@@ -24,7 +23,6 @@ RSpec.describe "Contract DSL", :acceptance do
       end
 
       action :show do
-        get "/invoices/:id"
         params do
           uuid :id
         end
@@ -36,15 +34,11 @@ RSpec.describe "Contract DSL", :acceptance do
     expect(contract.actions.size).to eq(2)
 
     create = contract.find_action(:create)
-    expect(create.http_method).to eq(:post)
-    expect(create.path).to eq("/invoices")
     expect(create.params.attributes.keys).to eq(%i[number amount])
     expect(create.params.attributes[:number].type).to eq(:string)
     expect(create.response_type).to eq(:invoice)
 
     show = contract.find_action(:show)
-    expect(show.http_method).to eq(:get)
-    expect(show.path).to eq("/invoices/:id")
     expect(show.params.attributes[:id].type).to eq(:uuid)
     expect(show.response_type).to eq(:invoice)
   end
@@ -59,7 +53,6 @@ RSpec.describe "Contract DSL", :acceptance do
   it "supports action with params only" do
     Zodra.contract :search do
       action :query do
-        get "/search"
         params do
           string :q, min: 1
           integer :page, default: 1

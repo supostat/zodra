@@ -6,15 +6,6 @@ module Zodra
       @action = action
     end
 
-    HTTP_METHODS = %i[get post put patch delete].freeze
-
-    HTTP_METHODS.each do |verb|
-      define_method(verb) do |action_path|
-        @action.http_method = verb
-        @action.path = action_path
-      end
-    end
-
     def params(&block)
       TypeBuilder.new(@action.params).instance_eval(&block)
     end

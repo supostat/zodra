@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 RSpec.describe "Contract-scoped types" do
-  after do
+  before do
     Zodra::ContractRegistry.global.clear!
     Zodra::TypeRegistry.global.clear!
   end
