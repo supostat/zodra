@@ -8,6 +8,15 @@
 </p>
 
 <p align="center">
+  <a href="https://github.com/supostat/zodra/actions/workflows/ci.yml"><img src="https://github.com/supostat/zodra/actions/workflows/ci.yml/badge.svg" alt="CI"></a>
+  <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-blue.svg" alt="License"></a>
+</p>
+
+<p align="center">
+  <a href="https://www.zodra.dev">Documentation</a> · <a href="https://www.zodra.dev/docs">Quick Start</a> · <a href="https://github.com/supostat/zodra">GitHub</a>
+</p>
+
+<p align="center">
   <em>Work in progress — not yet published to RubyGems or npm.</em>
 </p>
 
@@ -28,6 +37,7 @@ Ruby DSL  →  TypeScript interfaces  +  Zod schemas
 ## Features
 
 - **Type DSL** — objects, enums, unions with full attribute support (optional, nullable, defaults, constraints)
+- **Type Composition** — derive types with `from:`, `pick:`, `omit:`, `partial:` (like TypeScript utility types)
 - **Contracts** — define params and responses per action, decoupled from routing
 - **Resource Routing** — `Zodra.api` maps contracts to RESTful routes with nested resources and custom actions
 - **Params Validation** — strict by default, coerces and validates incoming params against contract schemas
@@ -256,6 +266,16 @@ Zodra.type :order do
 end
 ```
 
+### Type Composition
+
+Derive new types from existing ones — like TypeScript's `Pick`, `Omit`, and `Partial`:
+
+```ruby
+Zodra.type :create_product_params, from: :product, omit: [:id]
+Zodra.type :update_product_params, from: :product, omit: [:id], partial: true
+Zodra.type :product_summary, from: :product, pick: [:id, :name, :price]
+```
+
 ## Configuration
 
 ```ruby
@@ -287,8 +307,8 @@ zodra/
 │   └── packages/
 │       ├── client/         # @zodra/client
 │       └── vscode/         # VS Code extension
+├── website/                # Next.js documentation (zodra.dev)
 ├── example/                # Full Rails API app (smoke test)
-├── docs/                   # VitePress documentation
 └── .github/workflows/      # CI (Ruby 3.2/3.3/3.4 + Node 22)
 ```
 
