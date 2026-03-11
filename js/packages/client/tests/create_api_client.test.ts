@@ -1,7 +1,8 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
+import { describe, it, expect, vi } from "vitest";
 import { z } from "zod";
 import { createApiClient } from "../src/create_api_client";
 import { ZodraClientError, ZodraValidationError } from "../src/errors";
+import type { TransportFn } from "../src/types";
 
 const ProductSchema = z.object({
   id: z.string().uuid(),
@@ -43,26 +44,20 @@ const ProductsContract = {
   },
 } as const;
 
-function mockFetchJson(data: unknown, status = 200) {
+function mockTransport(body: unknown, status = 200): TransportFn {
   return vi.fn().mockResolvedValue({
-    ok: status >= 200 && status < 300,
     status,
     statusText: status === 200 ? "OK" : "Error",
-    json: () => Promise.resolve(data),
+    body,
   });
 }
 
 describe("createApiClient", () => {
-  beforeEach(() => {
-    vi.restoreAllMocks();
-  });
-
   it("creates a client with contract methods", () => {
-    vi.stubGlobal("fetch", mockFetchJson({}));
-
     const api = createApiClient({
       baseUrl: "http://localhost:3000/api/v1",
       contracts: { products: ProductsContract },
+      transport: mockTransport({}),
     });
 
     expect(api.products).toBeDefined();
@@ -72,57 +67,61 @@ describe("createApiClient", () => {
   });
 
   it("sends GET request with path params", async () => {
-    const mockFetch = mockFetchJson({
+    const transport = mockTransport({
       data: { id: "abc-123", name: "Widget", price: 9.99 },
     });
-    vi.stubGlobal("fetch", mockFetch);
 
     const api = createApiClient({
       baseUrl: "http://localhost:3000/api/v1",
       contracts: { products: ProductsContract },
+      transport,
     });
 
     await api.products.show({ id: "abc-123" });
 
-    expect(mockFetch).toHaveBeenCalledWith(
-      "http://localhost:3000/api/v1/products/abc-123",
-      expect.objectContaining({ method: "GET" }),
+    expect(transport).toHaveBeenCalledWith(
+      expect.objectContaining({
+        url: "http://localhost:3000/api/v1/products/abc-123",
+        method: "GET",
+      }),
     );
   });
 
   it("sends GET request with query params", async () => {
-    const mockFetch = mockFetchJson({ data: [] });
-    vi.stubGlobal("fetch", mockFetch);
+    const transport = mockTransport({ data: [] });
 
     const api = createApiClient({
       baseUrl: "http://localhost:3000/api/v1",
       contracts: { products: ProductsContract },
+      transport,
     });
 
     await api.products.index({ page: 2 });
 
-    expect(mockFetch).toHaveBeenCalledWith(
-      "http://localhost:3000/api/v1/products?page=2",
-      expect.objectContaining({ method: "GET" }),
+    expect(transport).toHaveBeenCalledWith(
+      expect.objectContaining({
+        url: "http://localhost:3000/api/v1/products?page=2",
+        method: "GET",
+      }),
     );
   });
 
   it("sends POST request with JSON body", async () => {
-    const mockFetch = mockFetchJson({
+    const transport = mockTransport({
       data: { id: "new-id", name: "Widget", price: 9.99 },
     });
-    vi.stubGlobal("fetch", mockFetch);
 
     const api = createApiClient({
       baseUrl: "http://localhost:3000/api/v1",
       contracts: { products: ProductsContract },
+      transport,
     });
 
     await api.products.create({ name: "Widget", price: 9.99 });
 
-    expect(mockFetch).toHaveBeenCalledWith(
-      "http://localhost:3000/api/v1/products",
+    expect(transport).toHaveBeenCalledWith(
       expect.objectContaining({
+        url: "http://localhost:3000/api/v1/products",
         method: "POST",
         body: JSON.stringify({ name: "Widget", price: 9.99 }),
         headers: expect.objectContaining({
@@ -132,13 +131,13 @@ describe("createApiClient", () => {
     );
   });
 
-  it("returns parsed JSON response", async () => {
+  it("returns parsed response body", async () => {
     const responseData = { id: "abc-123", name: "Widget", price: 9.99 };
-    vi.stubGlobal("fetch", mockFetchJson({ data: responseData }));
 
     const api = createApiClient({
       baseUrl: "http://localhost:3000/api/v1",
       contracts: { products: ProductsContract },
+      transport: mockTransport({ data: responseData }),
     });
 
     const result = await api.products.show({ id: "abc-123" });
@@ -146,20 +145,19 @@ describe("createApiClient", () => {
     expect(result.data).toEqual(responseData);
   });
 
-  it("passes custom headers", async () => {
-    const mockFetch = mockFetchJson({ data: {} });
-    vi.stubGlobal("fetch", mockFetch);
+  it("passes custom headers to transport", async () => {
+    const transport = mockTransport({ data: {} });
 
     const api = createApiClient({
       baseUrl: "http://localhost:3000/api/v1",
       headers: { Authorization: "Bearer token123" },
       contracts: { products: ProductsContract },
+      transport,
     });
 
     await api.products.index({});
 
-    expect(mockFetch).toHaveBeenCalledWith(
-      expect.any(String),
+    expect(transport).toHaveBeenCalledWith(
       expect.objectContaining({
         headers: expect.objectContaining({
           Authorization: "Bearer token123",
@@ -169,31 +167,30 @@ describe("createApiClient", () => {
   });
 
   it("strips trailing slash from baseUrl", async () => {
-    const mockFetch = mockFetchJson({ data: {} });
-    vi.stubGlobal("fetch", mockFetch);
+    const transport = mockTransport({ data: {} });
 
     const api = createApiClient({
       baseUrl: "http://localhost:3000/api/v1/",
       contracts: { products: ProductsContract },
+      transport,
     });
 
     await api.products.index({});
 
-    expect(mockFetch).toHaveBeenCalledWith(
-      expect.stringMatching(/^http:\/\/localhost:3000\/api\/v1\/products/),
-      expect.anything(),
+    expect(transport).toHaveBeenCalledWith(
+      expect.objectContaining({
+        url: expect.stringMatching(
+          /^http:\/\/localhost:3000\/api\/v1\/products/,
+        ),
+      }),
     );
   });
 
   it("throws ZodraClientError on HTTP error", async () => {
-    vi.stubGlobal(
-      "fetch",
-      mockFetchJson({ errors: ["Not found"] }, 404),
-    );
-
     const api = createApiClient({
       baseUrl: "http://localhost:3000/api/v1",
       contracts: { products: ProductsContract },
+      transport: mockTransport({ errors: ["Not found"] }, 404),
     });
 
     await expect(api.products.show({ id: "missing" })).rejects.toThrow(
@@ -202,14 +199,10 @@ describe("createApiClient", () => {
   });
 
   it("includes status and body in HTTP error", async () => {
-    vi.stubGlobal(
-      "fetch",
-      mockFetchJson({ errors: ["Not found"] }, 404),
-    );
-
     const api = createApiClient({
       baseUrl: "http://localhost:3000/api/v1",
       contracts: { products: ProductsContract },
+      transport: mockTransport({ errors: ["Not found"] }, 404),
     });
 
     const error = await api.products
@@ -224,16 +217,11 @@ describe("createApiClient", () => {
 });
 
 describe("validation", () => {
-  beforeEach(() => {
-    vi.restoreAllMocks();
-  });
-
   it("validates params when validateParams is true", async () => {
-    vi.stubGlobal("fetch", mockFetchJson({ data: {} }));
-
     const api = createApiClient({
       baseUrl: "http://localhost:3000/api/v1",
       contracts: { products: ProductsContract },
+      transport: mockTransport({ data: {} }),
       validateParams: true,
     });
 
@@ -243,11 +231,10 @@ describe("validation", () => {
   });
 
   it("skips params validation by default", async () => {
-    vi.stubGlobal("fetch", mockFetchJson({ data: {} }));
-
     const api = createApiClient({
       baseUrl: "http://localhost:3000/api/v1",
       contracts: { products: ProductsContract },
+      transport: mockTransport({ data: {} }),
     });
 
     await expect(
@@ -256,14 +243,10 @@ describe("validation", () => {
   });
 
   it("validates response when validateResponse is true", async () => {
-    vi.stubGlobal(
-      "fetch",
-      mockFetchJson({ data: { invalid: "response" } }),
-    );
-
     const api = createApiClient({
       baseUrl: "http://localhost:3000/api/v1",
       contracts: { products: ProductsContract },
+      transport: mockTransport({ data: { invalid: "response" } }),
       validateResponse: true,
     });
 
@@ -273,11 +256,10 @@ describe("validation", () => {
   });
 
   it("returns validation issues in error", async () => {
-    vi.stubGlobal("fetch", mockFetchJson({ data: {} }));
-
     const api = createApiClient({
       baseUrl: "http://localhost:3000/api/v1",
       contracts: { products: ProductsContract },
+      transport: mockTransport({ data: {} }),
       validateParams: true,
     });
 

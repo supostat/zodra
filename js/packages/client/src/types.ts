@@ -1,5 +1,22 @@
 import type { z } from "zod";
 
+export type TransportRequest = {
+  url: string;
+  method: string;
+  headers: Record<string, string>;
+  body?: string;
+};
+
+export type TransportResponse = {
+  status: number;
+  statusText: string;
+  body: unknown;
+};
+
+export type TransportFn = (
+  request: TransportRequest,
+) => Promise<TransportResponse>;
+
 export type ActionDefinition = {
   method: string;
   path: string;
@@ -35,6 +52,7 @@ export interface ApiClientConfig<
   baseUrl: string;
   headers?: Record<string, string>;
   contracts: T;
+  transport?: TransportFn;
   validateParams?: boolean;
   validateResponse?: boolean;
 }

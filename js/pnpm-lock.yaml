@@ -20,8 +20,8 @@ importers:
         specifier: ^3.0.0
         version: 3.2.4
       zod:
-        specifier: ^3.25.0
-        version: 3.25.76
+        specifier: ^4.3.6
+        version: 4.3.6
 
   packages/vscode:
     devDependencies:
@@ -729,8 +729,8 @@ packages:
     engines: {node: '>=8'}
     hasBin: true
 
-  zod@3.25.76:
-    resolution: {integrity: sha512-gzUt/qt81nXsFGKIFcC3YnfEAx5NkunCfnDlvuBSSFS02bcXu4Lmea0AFIUwbLWxWPx3d9p8S5QoaujKcNQxcQ==}
+  zod@4.3.6:
+    resolution: {integrity: sha512-rftlrkhHZOcjDwkGlnUtZZkvaPHCsDATp4pGpuOOMDaTdDDXF91wuVDJoWoPsKX/3YPQ5fHuF3STjcYyKr+Qhg==}
 
 snapshots:
 
@@ -1300,4 +1300,4 @@ snapshots:
       siginfo: 2.0.0
       stackback: 0.0.2
 
-  zod@3.25.76: {}
+  zod@4.3.6: {}

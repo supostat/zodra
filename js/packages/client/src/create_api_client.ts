@@ -4,9 +4,11 @@ import type {
   ApiClient,
   ApiClientConfig,
   ContractDefinition,
+  TransportFn,
 } from "./types";
 import { ZodraClientError, ZodraValidationError } from "./errors";
 import { buildQueryString, interpolatePath } from "./path";
+import { fetchTransport } from "./transport";
 
 const BODY_METHODS = new Set(["POST", "PUT", "PATCH"]);
 
@@ -14,6 +16,7 @@ function buildActionCaller(
   baseUrl: string,
   defaultHeaders: Record<string, string>,
   action: ActionDefinition,
+  transport: TransportFn,
   validateParams: boolean,
   validateResponse: boolean,
 ): (params: Record<string, unknown>) => Promise<{ data: unknown }> {
@@ -43,19 +46,17 @@ function buildActionCaller(
       requestUrl = `${fullUrl}${buildQueryString(remainingParams)}`;
     }
 
-    const response = await fetch(requestUrl, { method, headers, body });
+    const response = await transport({ url: requestUrl, method, headers, body });
 
-    if (!response.ok) {
-      const responseBody = await response.json().catch(() => undefined);
+    if (response.status < 200 || response.status >= 300) {
       throw new ZodraClientError(
         `HTTP ${response.status}: ${response.statusText}`,
-        { status: response.status, body: responseBody },
+        { status: response.status, body: response.body },
       );
     }
 
-    const json = await response.json();
-
     if (validateResponse && action.response) {
+      const json = response.body as { data: unknown };
       const result = (action.response as z.ZodType).safeParse(json.data);
       if (!result.success) {
         throw new ZodraValidationError(
@@ -65,7 +66,7 @@ function buildActionCaller(
       }
     }
 
-    return json;
+    return response.body as { data: unknown };
   };
 }
 
@@ -73,6 +74,7 @@ function buildContractClient(
   baseUrl: string,
   defaultHeaders: Record<string, string>,
   contract: ContractDefinition,
+  transport: TransportFn,
   validateParams: boolean,
   validateResponse: boolean,
 ): Record<string, (params: Record<string, unknown>) => Promise<unknown>> {
@@ -86,6 +88,7 @@ function buildContractClient(
       baseUrl,
       defaultHeaders,
       action,
+      transport,
       validateParams,
       validateResponse,
     );
@@ -101,6 +104,7 @@ export function createApiClient<
     baseUrl,
     headers = {},
     contracts,
+    transport = fetchTransport,
     validateParams = false,
     validateResponse = false,
   } = config;
@@ -113,6 +117,7 @@ export function createApiClient<
       normalizedBaseUrl,
       headers,
       contract,
+      transport,
       validateParams,
       validateResponse,
     );
