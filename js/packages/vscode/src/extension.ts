@@ -23,6 +23,7 @@ export function activate(context: vscode.ExtensionContext): void {
         "zodra",
         new vscode.ShellExecution(command),
       );
+      task.presentationOptions = { reveal: vscode.TaskRevealKind.Silent };
       vscode.tasks.executeTask(task);
     }),
   );
