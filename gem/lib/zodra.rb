@@ -153,6 +153,8 @@ module Zodra
         loader.ignore("#{__dir__}/ruby_lsp")
         loader.ignore("#{__dir__}/zodra/tasks")
         loader.ignore("#{__dir__}/zodra/railtie.rb")
+        loader.ignore("#{__dir__}/zodra/swagger.rb")
+        loader.ignore("#{__dir__}/zodra/swagger")
         loader.setup
       end
     end
@@ -160,5 +162,8 @@ module Zodra
 
   setup_autoload
 
-  require 'zodra/railtie' if defined?(Rails::Railtie)
+  if defined?(Rails::Railtie)
+    require 'zodra/railtie'
+    require 'zodra/swagger'
+  end
 end
