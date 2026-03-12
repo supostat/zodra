@@ -1,6 +1,6 @@
 ---
 title: Configuration
-description: Configure Zodra output paths, key formats, and validation behavior
+description: Configure Zodra output paths, key formats, validation, and OpenAPI settings
 ---
 
 # Configuration
@@ -13,6 +13,11 @@ Zodra.configure do |config|
   config.key_format = :camel
   config.zod_import = "zod"
   config.strict_params = true
+
+  # OpenAPI / Swagger UI
+  config.openapi_title = "My API"
+  config.openapi_version = "1.0.0"
+  config.openapi_description = "API documentation"
 end
 ```
 
@@ -65,4 +70,34 @@ When `true`, unknown keys in request params cause a validation error. When `fals
 
 ```ruby
 config.strict_params = false
+```
+
+### `openapi_title`
+
+Title displayed in the Swagger UI header and OpenAPI `info.title`.
+
+**Default:** `"API"`
+
+```ruby
+config.openapi_title = "My E-Commerce API"
+```
+
+### `openapi_version`
+
+API version in the OpenAPI `info.version` field.
+
+**Default:** `"1.0.0"`
+
+```ruby
+config.openapi_version = "2.0.0"
+```
+
+### `openapi_description`
+
+Optional description below the title in Swagger UI.
+
+**Default:** `nil`
+
+```ruby
+config.openapi_description = "Order management API"
 ```

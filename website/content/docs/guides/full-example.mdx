@@ -161,6 +161,7 @@ end
 
 ```ruby title="config/routes.rb"
 Rails.application.routes.draw do
+  mount Zodra::Swagger => '/docs'
   zodra_routes
 end
 ```

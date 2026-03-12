@@ -45,6 +45,8 @@ Ruby DSL  →  TypeScript interfaces  +  Zod schemas
 - **TypeScript Export** — generates `.ts` interfaces from your type definitions
 - **Zod Export** — generates `.ts` schemas with constraints (`z.string().min(1)`, `z.number().int()`)
 - **Controller Mixin** — `include Zodra::Controller` for `zodra_params`, `zodra_respond`, error handling
+- **OpenAPI 3.1** — auto-generated specs from your contracts with `rake zodra:openapi`
+- **Swagger UI** — built-in interactive API docs at `/docs` with `mount Zodra::Swagger`
 - **Rails Native** — Railtie, rake tasks, works with Zeitwerk and standard Rails conventions
 
 ## Quick Start
@@ -132,6 +134,7 @@ end
 ```ruby
 # config/routes.rb
 Rails.application.routes.draw do
+  mount Zodra::Swagger => '/docs'  # Swagger UI at /docs
   zodra_routes
 end
 ```
@@ -285,6 +288,11 @@ Zodra.configure do |config|
   config.key_format = :camel                  # :camel, :pascal, or :keep
   config.zod_import = "zod"                   # import path for Zod
   config.strict_params = true                 # reject unknown params
+
+  # OpenAPI / Swagger UI
+  config.openapi_title = "My API"
+  config.openapi_version = "1.0.0"
+  config.openapi_description = "API documentation"
 end
 ```
 
@@ -294,6 +302,7 @@ end
 bin/rails zodra:export              # generate both TypeScript + Zod
 bin/rails zodra:export:typescript   # generate only TypeScript interfaces
 bin/rails zodra:export:zod          # generate only Zod schemas
+bin/rails zodra:openapi             # generate OpenAPI 3.1 JSON specs
 ```
 
 ## Project Structure

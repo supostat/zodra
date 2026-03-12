@@ -1,0 +1,137 @@
+---
+title: OpenAPI & Swagger
+description: Auto-generated OpenAPI 3.1 specs and built-in Swagger UI
+---
+
+# OpenAPI & Swagger
+
+Zodra generates OpenAPI 3.1 specifications from your contracts and serves interactive Swagger UI — no extra configuration needed.
+
+## Swagger UI
+
+Mount the built-in Swagger UI in your routes:
+
+```ruby title="config/routes.rb"
+Rails.application.routes.draw do
+  mount Zodra::Swagger => '/docs'
+  zodra_routes
+end
+```
+
+Visit `/docs` to browse your API documentation with an interactive explorer.
+
+### Multiple APIs
+
+When you define multiple APIs, Swagger UI shows a dropdown to switch between them:
+
+```ruby title="config/apis/v1.rb"
+Zodra.api "/api/v1" do
+  resources :products
+  resources :orders
+end
+```
+
+```ruby title="config/apis/admin.rb"
+Zodra.api "/admin" do
+  resource :dashboard, only: %i[show]
+end
+```
+
+Each API gets its own OpenAPI spec served at `/docs/specs/{slug}` (e.g., `/docs/specs/api-v1`, `/docs/specs/admin`).
+
+## Configuration
+
+Customize the OpenAPI metadata in your initializer:
+
+```ruby title="config/initializers/zodra.rb"
+Zodra.configure do |config|
+  config.openapi_title = "My API"
+  config.openapi_version = "2.0.0"
+  config.openapi_description = "Order management API"
+end
+```
+
+| Option | Default | Description |
+|--------|---------|-------------|
+| `openapi_title` | `"API"` | Title shown in Swagger UI header |
+| `openapi_version` | `"1.0.0"` | API version displayed in the spec |
+| `openapi_description` | `nil` | Optional description below the title |
+
+## Excluding endpoints
+
+Use `openapi false` in a contract to exclude it from the generated spec:
+
+```ruby title="app/contracts/internal_metrics.rb"
+Zodra.contract :internal_metrics do
+  openapi false
+
+  action :show do
+    response do
+      integer :requests_per_second
+      decimal :avg_response_time
+    end
+  end
+end
+```
+
+This contract still works for validation and serialization but won't appear in Swagger UI.
+
+## Descriptions and deprecation
+
+Add descriptions to actions and mark them as deprecated:
+
+```ruby title="app/contracts/products.rb"
+Zodra.contract :products do
+  action :index do
+    description "List all products with pagination"
+    response :product, collection: true
+  end
+
+  action :legacy_search do
+    description "Search products by name"
+    deprecated!
+    params do
+      string? :query
+    end
+    response :product, collection: true
+  end
+end
+```
+
+Descriptions appear as summaries in Swagger UI. Deprecated actions are visually marked with a strikethrough.
+
+## Generating JSON specs
+
+Export OpenAPI specs as JSON files:
+
+```bash
+rails zodra:openapi
+```
+
+This writes one JSON file per API to your configured output path:
+
+```
+app/javascript/types/
+├── openapi-api-v1.json
+└── openapi-admin.json
+```
+
+Useful for CI pipelines, external documentation tools, or API clients that consume OpenAPI specs directly.
+
+## What gets generated
+
+Zodra maps your DSL to OpenAPI automatically:
+
+| Zodra DSL | OpenAPI 3.1 |
+|-----------|-------------|
+| Types | `components.schemas` |
+| Contract params | `requestBody` or path/query `parameters` |
+| Contract response | `responses.200.content` |
+| Contract errors | `responses.4xx` with error schemas |
+| Enums | `enum` property |
+| Unions | `oneOf` with `discriminator` |
+| Optional fields | Not in `required` array |
+| Nullable fields | `type: [..., "null"]` |
+| Constraints (`min`, `max`) | `minimum`, `maximum`, `minLength`, `maxLength` |
+| `description` | `summary` on operations |
+| `deprecated!` | `deprecated: true` on operations |

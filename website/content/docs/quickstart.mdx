@@ -61,6 +61,7 @@ Add the route helper to your routes file:
 
 ```ruby title="config/routes.rb"
 Rails.application.routes.draw do
+  mount Zodra::Swagger => '/docs'  # Swagger UI
   zodra_routes
 end
 ```
@@ -125,4 +126,5 @@ const { data: product } = await api.products.create({
 - [Types](/docs/types/basics) — all primitive types and options
 - [Contracts](/docs/contracts/defining) — params, responses, and errors
 - [Routing](/docs/api/routing) — resources, member/collection actions
+- [OpenAPI & Swagger](/docs/api/openapi) — interactive API docs
 - [Client](/docs/client/setup) — client configuration and usage
