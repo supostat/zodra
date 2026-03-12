@@ -1,0 +1,77 @@
+{
+  "Zodra Type": {
+    "prefix": "ztype",
+    "scope": "ruby",
+    "body": [
+      "Zodra.type :${1:name} do",
+      "  ${0}",
+      "end"
+    ],
+    "description": "Define a Zodra type"
+  },
+  "Zodra Enum": {
+    "prefix": "zenum",
+    "scope": "ruby",
+    "body": [
+      "Zodra.enum :${1:name}, values: %w[${2:values}]"
+    ],
+    "description": "Define a Zodra enum"
+  },
+  "Zodra Union": {
+    "prefix": "zunion",
+    "scope": "ruby",
+    "body": [
+      "Zodra.union :${1:name}, discriminator: :${2:type} do",
+      "  variant :${3:option} do",
+      "    ${0}",
+      "  end",
+      "end"
+    ],
+    "description": "Define a Zodra discriminated union"
+  },
+  "Zodra Contract": {
+    "prefix": "zcontract",
+    "scope": "ruby",
+    "body": [
+      "Zodra.contract :${1:name} do",
+      "  action :${2:index} do",
+      "    response :${3:type}${0}",
+      "  end",
+      "end"
+    ],
+    "description": "Define a Zodra contract"
+  },
+  "Zodra API": {
+    "prefix": "zapi",
+    "scope": "ruby",
+    "body": [
+      "Zodra.api \"${1:/api/v1}\" do",
+      "  resources :${2:name}${0}",
+      "end"
+    ],
+    "description": "Define a Zodra API"
+  },
+  "Zodra Action": {
+    "prefix": "zaction",
+    "scope": "ruby",
+    "body": [
+      "action :${1:name} do",
+      "  params do",
+      "    ${0}",
+      "  end",
+      "  response :${2:type}",
+      "end"
+    ],
+    "description": "Define a Zodra contract action"
+  },
+  "Zodra Scalar": {
+    "prefix": "zscalar",
+    "scope": "ruby",
+    "body": [
+      "Zodra.scalar :${1:name}, base: :${2:string} do |value|",
+      "  ${0}",
+      "end"
+    ],
+    "description": "Define a Zodra custom scalar"
+  }
+}

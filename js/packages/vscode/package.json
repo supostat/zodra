@@ -14,6 +14,48 @@
     "workspaceContains:**/app/types/**/*.rb"
   ],
   "main": "./dist/extension.js",
+  "contributes": {
+    "commands": [
+      {
+        "command": "zodra.openGeneratedTS",
+        "title": "Zodra: Open Generated TypeScript"
+      },
+      {
+        "command": "zodra.openRubySource",
+        "title": "Zodra: Open Ruby Source"
+      },
+      {
+        "command": "zodra.export",
+        "title": "Zodra: Export TypeScript"
+      }
+    ],
+    "configuration": {
+      "title": "Zodra",
+      "properties": {
+        "zodra.autoExport": {
+          "type": "boolean",
+          "default": true,
+          "description": "Automatically run zodra:export when Ruby definitions change"
+        },
+        "zodra.outputPath": {
+          "type": "string",
+          "default": "app/javascript/types",
+          "description": "Path to generated TypeScript files (relative to workspace root)"
+        },
+        "zodra.exportDebounceMs": {
+          "type": "number",
+          "default": 1500,
+          "description": "Debounce delay for auto-export (milliseconds)"
+        }
+      }
+    },
+    "snippets": [
+      {
+        "language": "ruby",
+        "path": "./snippets/zodra.code-snippets"
+      }
+    ]
+  },
   "scripts": {
     "build": "tsup src/extension.ts --format cjs --external vscode",
     "watch": "tsup src/extension.ts --format cjs --external vscode --watch",
@@ -24,6 +66,7 @@
   },
   "devDependencies": {
     "@types/vscode": "^1.85.0",
+    "@types/node": "^22.0.0",
     "tsup": "^8.0.0",
     "typescript": "^5.7.0",
     "vitest": "^3.0.0"
