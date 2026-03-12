@@ -2,11 +2,11 @@
 
 module Zodra
   class Attribute
-    attr_reader :name, :type, :format, :default, :min, :max, :enum, :of, :reference_name, :enum_type_name
+    attr_reader :name, :type, :format, :default, :min, :max, :enum, :of, :reference_name, :enum_type_name, :as
 
     def initialize(name:, type:, optional: false, nullable: false, format: nil,
                    default: nil, min: nil, max: nil, enum: nil, of: nil, reference_name: nil,
-                   enum_type_name: nil)
+                   enum_type_name: nil, as: nil)
       @name = name.to_sym
       @type = type.to_sym
       @optional = optional
@@ -19,6 +19,7 @@ module Zodra
       @of = of
       @reference_name = reference_name
       @enum_type_name = enum_type_name
+      @as = as&.to_s
     end
 
     def optional?

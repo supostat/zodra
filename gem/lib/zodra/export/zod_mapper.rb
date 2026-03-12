@@ -79,13 +79,13 @@ module Zodra
       end
 
       def map_variant(variant, discriminator_key)
-        properties = variant.attributes.values.map { |attr| "#{transform_key(attr.name)}: #{map_zod_type(attr)}" }
+        properties = variant.attributes.values.map { |attr| "#{attr.as || transform_key(attr.name)}: #{map_zod_type(attr)}" }
         all_properties = ["#{discriminator_key}: z.literal('#{variant.tag}')"] + properties
         "z.object({ #{all_properties.join(', ')} })"
       end
 
       def map_property(attribute)
-        key = transform_key(attribute.name)
+        key = attribute.as || transform_key(attribute.name)
         "#{key}: #{map_zod_type(attribute)}"
       end
 

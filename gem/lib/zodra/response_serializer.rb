@@ -7,7 +7,7 @@ module Zodra
 
       definition.attributes.each do |attr_name, attribute|
         value = extract_value(object, attr_name)
-        serialized_key = transform_key(attr_name, key_format)
+        serialized_key = attribute.as || transform_key(attr_name, key_format)
 
         if attribute.reference?
           referenced = type_resolver.find!(attribute.reference_name)

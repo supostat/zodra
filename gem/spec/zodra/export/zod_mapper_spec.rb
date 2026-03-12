@@ -136,6 +136,16 @@ RSpec.describe Zodra::Export::ZodMapper do
 
       expect(result).to include('firstName: z.string()')
     end
+
+    it 'uses as: alias for key name' do
+      definition = build_object(:payrate,
+                                pay_rate_guid: { type: :string, as: :payRateGUID })
+
+      result = mapper.map_definition(definition)
+
+      expect(result).to include('payRateGUID: z.string()')
+      expect(result).not_to include('payRateGuid')
+    end
   end
 
   describe '#map_contract' do

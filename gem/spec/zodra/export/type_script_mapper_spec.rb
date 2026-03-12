@@ -131,6 +131,16 @@ RSpec.describe Zodra::Export::TypeScriptMapper do
 
       expect(result).to include('  firstName: string;')
     end
+
+    it 'uses as: alias for key name' do
+      definition = build_object(:payrate,
+                                pay_rate_guid: { type: :string, as: :payRateGUID })
+
+      result = mapper.map_definition(definition)
+
+      expect(result).to include('  payRateGUID: string;')
+      expect(result).not_to include('payRateGuid')
+    end
   end
 
   describe 'key_format :keep' do

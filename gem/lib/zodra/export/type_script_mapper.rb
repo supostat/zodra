@@ -63,14 +63,14 @@ module Zodra
       def map_variant(variant, discriminator)
         discriminator_key = transform_key(discriminator)
         properties = variant.attributes.values.map do |attr|
-          "#{transform_key(attr.name)}: #{map_type(attr)}"
+          "#{attr.as || transform_key(attr.name)}: #{map_type(attr)}"
         end
         all_properties = ["#{discriminator_key}: '#{variant.tag}'"] + properties
         "  | { #{all_properties.join('; ')} }"
       end
 
       def map_property(attribute)
-        key = transform_key(attribute.name)
+        key = attribute.as || transform_key(attribute.name)
         optional_marker = attribute.optional? ? '?' : ''
         type_string = map_type(attribute)
         type_string = [type_string, 'null'].sort.join(' | ') if attribute.nullable?

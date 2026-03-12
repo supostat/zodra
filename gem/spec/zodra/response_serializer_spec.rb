@@ -143,6 +143,24 @@ RSpec.describe Zodra::ResponseSerializer do
       expect(result['active']).to be(false)
     end
 
+    it 'uses as: alias for key name' do
+      definition = Zodra::Definition.new(name: :response, kind: :object)
+      definition.add_attribute(:pay_rate_guid, type: :string, as: :payRateGUID)
+
+      result = described_class.call(OpenStruct.new(pay_rate_guid: 'abc-123'), definition)
+
+      expect(result).to eq({ 'payRateGUID' => 'abc-123' })
+    end
+
+    it 'uses as: alias over key_format' do
+      definition = Zodra::Definition.new(name: :response, kind: :object)
+      definition.add_attribute(:pay_rate_guid, type: :string, as: :payRateGUID)
+
+      result = described_class.call(OpenStruct.new(pay_rate_guid: 'abc-123'), definition, key_format: :camel)
+
+      expect(result).to eq({ 'payRateGUID' => 'abc-123' })
+    end
+
     it 'only includes attributes defined in schema' do
       definition = build_definition(name: { type: :string })
       object = OpenStruct.new(name: 'John', secret: 'hidden')
