@@ -2,10 +2,12 @@
 
 Zodra.contract :products do
   action :index do
+    description "List all products with pagination"
     response :product, collection: true
   end
 
   action :show do
+    description "Get a single product by ID"
     params do
       uuid :id
     end
@@ -13,6 +15,7 @@ Zodra.contract :products do
   end
 
   action :create do
+    description "Create a new product"
     params do
       string :name, min: 1
       string :sku, min: 1
@@ -29,6 +32,7 @@ Zodra.contract :products do
   end
 
   action :update do
+    description "Update an existing product"
     params do
       uuid :id
       string? :name, min: 1
@@ -46,8 +50,17 @@ Zodra.contract :products do
   end
 
   action :destroy do
+    description "Delete a product"
     params do
       uuid :id
     end
+  end
+
+  action :legacy_search do
+    deprecated! "Use :index with filter params instead"
+    params do
+      string? :query
+    end
+    response :product, collection: true
   end
 end

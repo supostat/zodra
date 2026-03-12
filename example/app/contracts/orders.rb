@@ -2,10 +2,12 @@
 
 Zodra.contract :orders do
   action :index do
+    description "List all orders"
     response :order, collection: true
   end
 
   action :show do
+    description "Get a single order by ID"
     params do
       uuid :id
     end
@@ -13,6 +15,7 @@ Zodra.contract :orders do
   end
 
   action :create do
+    description "Place a new order"
     params from: :order_input
     response :order
     error :validation_failed, status: 422
@@ -29,6 +32,7 @@ Zodra.contract :orders do
   end
 
   action :confirm do
+    description "Confirm a draft order for fulfillment"
     params do
       uuid :id
     end
@@ -38,6 +42,7 @@ Zodra.contract :orders do
   end
 
   action :cancel do
+    description "Cancel an order"
     params do
       uuid :id
     end
@@ -47,6 +52,7 @@ Zodra.contract :orders do
   end
 
   action :search do
+    description "Search orders by status and date range"
     params do
       order_status? :status
       date? :from_date

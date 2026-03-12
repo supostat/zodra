@@ -41,6 +41,12 @@ module Api
         product.destroy!
         head :no_content
       end
+
+      def legacy_search
+        query = zodra_params[:query]
+        products = query ? Product.where('name ILIKE ?', "%#{query}%") : Product.all
+        zodra_respond_collection(products)
+      end
     end
   end
 end
