@@ -5,9 +5,14 @@ import * as path from "path";
 export function registerStaleCheck(
   context: vscode.ExtensionContext,
 ): void {
+  const config = vscode.workspace.getConfiguration("zodra");
+  if (!config.get<boolean>("staleCheck.enabled", true)) return;
+
+  const intervalMs = config.get<number>("staleCheck.intervalMs", 60_000);
+
   checkStaleFiles();
 
-  const interval = setInterval(checkStaleFiles, 60_000);
+  const interval = setInterval(checkStaleFiles, intervalMs);
   context.subscriptions.push({ dispose: () => clearInterval(interval) });
 }
 
@@ -30,7 +35,13 @@ async function checkStaleFiles(): Promise<void> {
     return;
   }
 
-  for (const dir of ["app/types", "app/contracts", "config/apis"]) {
+  const sourcePaths = config.get<string[]>("sourcePaths", [
+    "app/types",
+    "app/contracts",
+    "config/apis",
+  ]);
+
+  for (const dir of sourcePaths) {
     const fullDir = path.join(root, dir);
 
     let files: string[];

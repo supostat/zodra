@@ -1,10 +1,21 @@
 import * as vscode from "vscode";
 
+function buildWatcherPattern(): string {
+  const config = vscode.workspace.getConfiguration("zodra");
+  const paths = config.get<string[]>("sourcePaths", [
+    "app/types",
+    "app/contracts",
+    "config/apis",
+  ]);
+
+  return `{${paths.join(",")}}/**/*.rb`;
+}
+
 export function registerAutoExport(
   context: vscode.ExtensionContext,
 ): void {
   const watcher = vscode.workspace.createFileSystemWatcher(
-    "{app/types,app/contracts,config/apis}/**/*.rb",
+    buildWatcherPattern(),
   );
 
   let debounceTimer: ReturnType<typeof setTimeout> | undefined;
@@ -23,12 +34,17 @@ export function registerAutoExport(
       statusBarItem.text = "$(sync~spin) Zodra: exporting...";
       statusBarItem.show();
 
+      const command = config.get<string>(
+        "exportCommand",
+        "bundle exec rails zodra:export",
+      );
+
       const task = new vscode.Task(
         { type: "zodra", task: "export" },
         vscode.TaskScope.Workspace,
         "export",
         "zodra",
-        new vscode.ShellExecution("bundle exec rails zodra:export"),
+        new vscode.ShellExecution(command),
       );
       task.presentationOptions = { reveal: vscode.TaskRevealKind.Silent };
 

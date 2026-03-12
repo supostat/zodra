@@ -10,12 +10,18 @@ export function activate(context: vscode.ExtensionContext): void {
 
   context.subscriptions.push(
     vscode.commands.registerCommand("zodra.export", () => {
+      const config = vscode.workspace.getConfiguration("zodra");
+      const command = config.get<string>(
+        "exportCommand",
+        "bundle exec rails zodra:export",
+      );
+
       const task = new vscode.Task(
         { type: "zodra", task: "export" },
         vscode.TaskScope.Workspace,
         "export",
         "zodra",
-        new vscode.ShellExecution("bundle exec rails zodra:export"),
+        new vscode.ShellExecution(command),
       );
       vscode.tasks.executeTask(task);
     }),

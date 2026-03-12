@@ -42,10 +42,31 @@
           "default": "app/javascript/types",
           "description": "Path to generated TypeScript files (relative to workspace root)"
         },
+        "zodra.exportCommand": {
+          "type": "string",
+          "default": "bundle exec rails zodra:export",
+          "description": "Shell command to run zodra:export (e.g. 'rbenv exec bundle exec rails zodra:export')"
+        },
         "zodra.exportDebounceMs": {
           "type": "number",
           "default": 1500,
           "description": "Debounce delay for auto-export (milliseconds)"
+        },
+        "zodra.sourcePaths": {
+          "type": "array",
+          "items": { "type": "string" },
+          "default": ["app/types", "app/contracts", "config/apis"],
+          "description": "Paths to Zodra Ruby source directories (relative to workspace root)"
+        },
+        "zodra.staleCheck.enabled": {
+          "type": "boolean",
+          "default": true,
+          "description": "Show a notification when generated TypeScript files may be outdated"
+        },
+        "zodra.staleCheck.intervalMs": {
+          "type": "number",
+          "default": 60000,
+          "description": "How often to check for stale files (milliseconds)"
         }
       }
     },
