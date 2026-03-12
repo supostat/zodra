@@ -43,6 +43,68 @@ When request params fail validation (wrong type, missing required field, value o
 
 No additional code needed — this is handled by `zodra_params` in the controller.
 
+## Validation error keys
+
+By default, Zodra derives valid error keys from your params definition. You can also declare them explicitly with the `errors` block:
+
+```ruby title="app/contracts/products.rb"
+Zodra.contract :products do
+  action :create do
+    params do
+      string :name, min: 1
+      string :sku, min: 1
+      money :price, min: 0
+    end
+    response :product
+
+    errors do
+      from_params
+      key :base
+    end
+  end
+end
+```
+
+### `from_params`
+
+Generates error keys from the action's params definition. Supports `except:` to exclude specific keys:
+
+```ruby
+errors do
+  from_params except: [:internal_id]
+  key :base
+end
+```
+
+### Nested error keys
+
+For actions with nested data (arrays of objects), declare nested keys with a block:
+
+```ruby title="app/contracts/orders.rb"
+action :create do
+  params from: :order_input
+  response :order
+
+  errors do
+    key :base
+    key :customer_id
+    key :shipping_address
+    key :items do
+      key :product_id
+      key :quantity
+    end
+  end
+end
+```
+
+Zodra validates error keys at all nesting levels. In non-production environments, unknown keys raise an error with the full path:
+
+```
+Unknown error keys [:bad_key] in items[0] for action :create.
+```
+
+In production, unknown keys are logged as warnings instead.
+
 ## Business errors with `zodra_rescue`
 
 Map Ruby exceptions to error codes declared in your contract:
@@ -83,19 +145,83 @@ Use `zodra_errors` for field-level errors that aren't from param validation:
 
 ```ruby
 def create
-  invoice = Invoice.new(zodra_params)
+  product = Product.new(zodra_params)
 
-  unless invoice.valid?
-    return zodra_errors(
-      invoice.errors.messages,
-      status: :unprocessable_entity
-    )
+  if product.save
+    zodra_respond(product, status: :created)
+  else
+    zodra_errors(product.errors)
   end
-
-  invoice.save!
-  zodra_respond(invoice, status: :created)
 end
 ```
+
+`zodra_errors` accepts ActiveModel::Errors objects, hashes, or anything responding to `.messages`. Keys are automatically transformed to match your `key_format` configuration (e.g., `snake_case` to `camelCase`), including nested keys in arrays.
+
+## ErrorMapper
+
+For complex scenarios where errors come from multiple sources (parent record, child records, external services), use `Zodra::ErrorMapper`:
+
+```ruby title="app/error_mappers/order_error_mapper.rb"
+class OrderErrorMapper < Zodra::ErrorMapper
+  def call(order:)
+    collect(order) do
+      ignore :number, :status, :total_amount
+      map_remaining
+    end
+
+    item_errors = build_item_errors(order.line_items)
+    result[:items] = item_errors if item_errors.any?
+
+    result
+  end
+
+  private
+
+  def build_item_errors(line_items)
+    line_items.filter_map do |line_item|
+      next if line_item.errors.empty?
+
+      mapped = {}
+      line_item.errors.to_hash.each do |key, messages|
+        next if %i[order unit_price total_price].include?(key)
+
+        mapped_key = key == :product ? :product_id : key
+        mapped[mapped_key] = messages
+      end
+      mapped.presence
+    end
+  end
+end
+```
+
+Use it in the controller:
+
+```ruby
+def create
+  order = build_order_record
+
+  if order.valid? && order.line_items.all?(&:valid?)
+    order.save!
+    zodra_respond(order.reload, status: :created)
+  else
+    zodra_errors(OrderErrorMapper.call(order: order))
+  end
+end
+```
+
+### ErrorMapper API
+
+Inside a `collect` block, these methods are available:
+
+| Method | Description |
+|--------|-------------|
+| `map(from => to)` | Remap a key (e.g., `map product: :product_id`) |
+| `map_remaining` | Transfer all unmapped keys as-is |
+| `ignore(*keys)` | Skip keys from the source |
+| `consume(key)` | Extract and remove a key from the source |
+| `add(key, message)` | Manually add an error message |
+| `source_errors` | Access the raw source error hash |
+| `assert_no_unmapped!` | Raise if any source has unmapped keys (strict mode) |
 
 ## Client-side error handling
 

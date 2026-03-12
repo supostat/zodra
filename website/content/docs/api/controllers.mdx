@@ -126,12 +126,23 @@ See [Error Handling](/docs/contracts/errors) for the full error flow.
 
 ## `zodra_errors`
 
-Returns field-level validation errors:
+Returns field-level validation errors. Accepts ActiveModel::Errors, hashes, or anything responding to `.messages`:
 
 ```ruby
-zodra_errors({ name: ["can't be blank"] }, status: :unprocessable_entity)
-# Response: { errors: { name: ["can't be blank"] } }
+def create
+  product = Product.new(zodra_params)
+
+  if product.save
+    zodra_respond(product, status: :created)
+  else
+    zodra_errors(product.errors)
+  end
+end
 ```
+
+Keys are automatically transformed to match your `key_format` configuration, including nested keys in arrays.
+
+For complex error mapping (multiple models, key remapping), use `Zodra::ErrorMapper`. See [Error Handling](/docs/contracts/errors#errormapper).
 
 ## Full controller example
 
@@ -152,14 +163,24 @@ module Api
       end
 
       def create
-        customer = Customer.create!(zodra_params)
-        zodra_respond(customer, status: :created)
+        customer = Customer.new(zodra_params)
+
+        if customer.save
+          zodra_respond(customer, status: :created)
+        else
+          zodra_errors(customer.errors)
+        end
       end
 
       def update
         customer = Customer.find(zodra_params[:id])
-        customer.update!(zodra_params.except(:id))
-        zodra_respond(customer)
+        customer.assign_attributes(zodra_params.except(:id))
+
+        if customer.save
+          zodra_respond(customer)
+        else
+          zodra_errors(customer.errors)
+        end
       end
 
       def destroy

@@ -21,8 +21,17 @@ module Api
       end
 
       def create
-        order = build_order
-        zodra_respond(order, status: :created)
+        order = build_order_record
+
+        if order.valid? && order.line_items.all?(&:valid?)
+          ActiveRecord::Base.transaction do
+            order.save!
+            order.recalculate_total!
+          end
+          zodra_respond(order.reload, status: :created)
+        else
+          zodra_errors(OrderErrorMapper.call(order: order))
+        end
       end
 
       def confirm
@@ -47,25 +56,23 @@ module Api
 
       private
 
-      def build_order
-        ActiveRecord::Base.transaction do
-          order = Order.create!(
-            customer_id: zodra_params[:customer_id],
-            shipping_address: zodra_params[:shipping_address]
+      def build_order_record
+        order = Order.new(
+          customer_id: zodra_params[:customer_id],
+          shipping_address: zodra_params[:shipping_address],
+          total_amount: 0
+        )
+
+        zodra_params[:items].each do |item|
+          product = Product.find_by(id: item[:product_id])
+          order.line_items.build(
+            product: product,
+            quantity: item[:quantity],
+            unit_price: product&.price || 0
           )
-
-          zodra_params[:items].each do |item|
-            product = Product.find(item[:product_id])
-            order.line_items.create!(
-              product: product,
-              quantity: item[:quantity],
-              unit_price: product.price
-            )
-          end
-
-          order.recalculate_total!
-          order.reload
         end
+
+        order
       end
     end
   end

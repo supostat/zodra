@@ -102,6 +102,16 @@ Zodra.contract :orders do
     params from: :order_input
     response :order
     error :validation_failed, status: 422
+
+    errors do
+      key :base
+      key :customer_id
+      key :shipping_address
+      key :items do
+        key :product_id
+        key :quantity
+      end
+    end
   end
 
   action :confirm do
@@ -155,7 +165,42 @@ Rails.application.routes.draw do
 end
 ```
 
-## 4. Controller
+## 4. ErrorMapper
+
+```ruby title="app/error_mappers/order_error_mapper.rb"
+class OrderErrorMapper < Zodra::ErrorMapper
+  def call(order:)
+    collect(order) do
+      ignore :number, :status, :total_amount
+      map_remaining
+    end
+
+    item_errors = build_item_errors(order.line_items)
+    result[:items] = item_errors if item_errors.any?
+
+    result
+  end
+
+  private
+
+  def build_item_errors(line_items)
+    line_items.filter_map do |line_item|
+      next if line_item.errors.empty?
+
+      mapped = {}
+      line_item.errors.to_hash.each do |key, messages|
+        next if %i[order unit_price total_price].include?(key)
+
+        mapped_key = key == :product ? :product_id : key
+        mapped[mapped_key] = messages
+      end
+      mapped.presence
+    end
+  end
+end
+```
+
+## 5. Controller
 
 ```ruby title="app/controllers/api/v1/orders_controller.rb"
 module Api
@@ -180,8 +225,17 @@ module Api
       end
 
       def create
-        order = build_order
-        zodra_respond(order, status: :created)
+        order = build_order_record
+
+        if order.valid? && order.line_items.all?(&:valid?)
+          ActiveRecord::Base.transaction do
+            order.save!
+            order.recalculate_total!
+          end
+          zodra_respond(order.reload, status: :created)
+        else
+          zodra_errors(OrderErrorMapper.call(order: order))
+        end
       end
 
       def confirm
@@ -206,38 +260,36 @@ module Api
 
       private
 
-      def build_order
-        ActiveRecord::Base.transaction do
-          order = Order.create!(
-            customer_id: zodra_params[:customer_id],
-            shipping_address: zodra_params[:shipping_address],
+      def build_order_record
+        order = Order.new(
+          customer_id: zodra_params[:customer_id],
+          shipping_address: zodra_params[:shipping_address],
+          total_amount: 0,
+        )
+
+        zodra_params[:items].each do |item|
+          product = Product.find_by(id: item[:product_id])
+          order.line_items.build(
+            product: product,
+            quantity: item[:quantity],
+            unit_price: product&.price || 0,
           )
-
-          zodra_params[:items].each do |item|
-            product = Product.find(item[:product_id])
-            order.line_items.create!(
-              product: product,
-              quantity: item[:quantity],
-              unit_price: product.price,
-            )
-          end
-
-          order.recalculate_total!
-          order.reload
         end
+
+        order
       end
     end
   end
 end
 ```
 
-## 5. Generate TypeScript
+## 6. Generate TypeScript
 
 ```bash
 rails zodra:export
 ```
 
-## 6. Frontend client
+## 7. Frontend client
 
 ```typescript title="src/api.ts"
 import { createApiClient } from "@zodra/client";

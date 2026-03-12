@@ -18,14 +18,24 @@ module Api
       end
 
       def create
-        product = Product.create!(zodra_params)
-        zodra_respond(product, status: :created)
+        product = Product.new(zodra_params)
+
+        if product.save
+          zodra_respond(product, status: :created)
+        else
+          zodra_errors(product.errors)
+        end
       end
 
       def update
         product = Product.find(zodra_params[:id])
-        product.update!(zodra_params.except(:id))
-        zodra_respond(product)
+        product.assign_attributes(zodra_params.except(:id))
+
+        if product.save
+          zodra_respond(product)
+        else
+          zodra_errors(product.errors)
+        end
       end
 
       def destroy

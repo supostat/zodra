@@ -21,6 +21,11 @@ Zodra.contract :products do
       boolean :published, default: false
     end
     response :product
+
+    errors do
+      from_params
+      key :base
+    end
   end
 
   action :update do
@@ -33,6 +38,11 @@ Zodra.contract :products do
       boolean? :published
     end
     response :product
+
+    errors do
+      from_params
+      key :base
+    end
   end
 
   action :destroy do

@@ -16,6 +16,16 @@ Zodra.contract :orders do
     params from: :order_input
     response :order
     error :validation_failed, status: 422
+
+    errors do
+      key :base
+      key :customer_id
+      key :shipping_address
+      key :items do
+        key :product_id
+        key :quantity
+      end
+    end
   end
 
   action :confirm do

@@ -18,14 +18,24 @@ module Api
       end
 
       def create
-        customer = Customer.create!(zodra_params)
-        zodra_respond(customer, status: :created)
+        customer = Customer.new(zodra_params)
+
+        if customer.save
+          zodra_respond(customer, status: :created)
+        else
+          zodra_errors(customer.errors)
+        end
       end
 
       def update
         customer = Customer.find(zodra_params[:id])
-        customer.update!(zodra_params.except(:id))
-        zodra_respond(customer)
+        customer.assign_attributes(zodra_params.except(:id))
+
+        if customer.save
+          zodra_respond(customer)
+        else
+          zodra_errors(customer.errors)
+        end
       end
 
       def destroy

@@ -15,11 +15,21 @@ Zodra.contract :customers do
   action :create do
     params from: :customer, omit: %i[id registered_at created_at updated_at]
     response :customer
+
+    errors do
+      from_params
+      key :base
+    end
   end
 
   action :update do
     params from: :customer, omit: %i[id registered_at created_at updated_at], partial: true
     response :customer
+
+    errors do
+      from_params
+      key :base
+    end
   end
 
   action :destroy do
