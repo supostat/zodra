@@ -198,7 +198,7 @@ RSpec.describe Zodra::Controller do
       end
 
       it 'logs warning but still renders' do
-        logger = instance_double(Logger)
+        logger = double('Logger')
         allow(Zodra).to receive(:logger).and_return(logger)
         allow(logger).to receive(:warn)
 
@@ -217,6 +217,109 @@ RSpec.describe Zodra::Controller do
           controller.send(:zodra_errors, { anything: ['ok'] })
         end.not_to raise_error
       end
+    end
+  end
+
+  describe 'errors DSL (validation error keys)' do
+    before do
+      stub_const('Rails', double('Rails', env: double('env', production?: false)))
+    end
+
+    it 'validates against explicit error keys definition' do
+      Zodra.contract(:periods) do
+        action :create do
+          params do
+            string :date
+            string :starts_at
+          end
+
+          errors do
+            from_params
+            key :base
+          end
+        end
+      end
+
+      klass = controller_class
+      klass.zodra_contract :periods
+      ctrl = klass.new
+      ctrl.action_name = 'create'
+
+      expect do
+        ctrl.send(:zodra_errors, { date: ['err'], starts_at: ['err'], base: ['err'] })
+      end.not_to raise_error
+
+      expect do
+        ctrl.send(:zodra_errors, { unknown: ['err'] })
+      end.to raise_error(Zodra::Error, /Unknown error keys \[:unknown\]/)
+    end
+
+    it 'supports from_params except' do
+      Zodra.contract(:filtered) do
+        action :create do
+          params do
+            string :name
+            string :internal_id
+          end
+
+          errors do
+            from_params except: [:internal_id]
+            key :base
+          end
+        end
+      end
+
+      klass = controller_class
+      klass.zodra_contract :filtered
+      ctrl = klass.new
+      ctrl.action_name = 'create'
+
+      expect do
+        ctrl.send(:zodra_errors, { internal_id: ['err'] })
+      end.to raise_error(Zodra::Error, /Unknown error keys \[:internal_id\]/)
+    end
+
+    it 'validates nested error keys in arrays' do
+      Zodra.contract(:nested) do
+        action :create do
+          params do
+            string :name
+          end
+
+          errors do
+            key :name
+            key :base
+            key :items do
+              key :starts_at
+              key :ends_at
+            end
+          end
+        end
+      end
+
+      klass = controller_class
+      klass.zodra_contract :nested
+      ctrl = klass.new
+      ctrl.action_name = 'create'
+
+      expect do
+        ctrl.send(:zodra_errors, { items: [{ starts_at: ['err'], ends_at: ['err'] }] })
+      end.not_to raise_error
+
+      expect do
+        ctrl.send(:zodra_errors, { items: [{ bad_key: ['err'] }] })
+      end.to raise_error(Zodra::Error, /Unknown error keys \[:bad_key\] in items\[0\]/)
+    end
+
+    it 'falls back to params-derived keys when no errors block defined' do
+      klass = controller_class
+      klass.zodra_contract :invoices
+      ctrl = klass.new
+      ctrl.action_name = 'create'
+
+      expect do
+        ctrl.send(:zodra_errors, { number: ['err'], amount: ['err'], base: ['ok'] })
+      end.not_to raise_error
     end
   end
 

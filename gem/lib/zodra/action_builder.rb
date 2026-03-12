@@ -25,6 +25,12 @@ module Zodra
       end
     end
 
+    def errors(&)
+      definition = ErrorKeysDefinition.new
+      ErrorKeysBuilder.new(definition, params_definition: @action.params).instance_eval(&)
+      @action.error_keys_definition = definition
+    end
+
     def error(code, status:)
       @action.add_error(code, status:)
     end

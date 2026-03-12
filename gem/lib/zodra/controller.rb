@@ -106,8 +106,12 @@ module Zodra
     def valid_error_keys_for_action
       return @valid_error_keys_for_action if defined?(@valid_error_keys_for_action)
 
-      param_keys = zodra_action.params.attributes.keys
-      @valid_error_keys_for_action = param_keys.empty? ? nil : param_keys + [:base]
+      @valid_error_keys_for_action = if zodra_action.error_keys_definition
+                                       zodra_action.error_keys_definition
+                                     else
+                                       param_keys = zodra_action.params.attributes.keys
+                                       param_keys.empty? ? nil : param_keys + [:base]
+                                     end
     end
 
     def normalize_param_keys(value)
