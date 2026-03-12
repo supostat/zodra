@@ -13,6 +13,30 @@ RSpec.describe Zodra::Swagger do
     Zodra::ApiRegistry.global.clear!
   end
 
+  describe '.call' do
+    before do
+      allow(Zodra::Export).to receive(:generate_openapi).and_return({ 'api' => { openapi: '3.1.0' } })
+    end
+
+    it 'routes root to index' do
+      env = { 'SCRIPT_NAME' => '/docs', 'PATH_INFO' => '/' }
+
+      status, headers, = described_class.call(env)
+
+      expect(status).to eq(200)
+      expect(headers['content-type']).to eq('text/html; charset=utf-8')
+    end
+
+    it 'routes /specs/:slug to spec' do
+      env = { 'SCRIPT_NAME' => '/docs', 'PATH_INFO' => '/specs/api' }
+
+      status, headers, = described_class.call(env)
+
+      expect(status).to eq(200)
+      expect(headers['content-type']).to eq('application/json')
+    end
+  end
+
   describe '.serve_index' do
     let(:env) { { 'SCRIPT_NAME' => '/docs' } }
 
@@ -29,6 +53,7 @@ RSpec.describe Zodra::Swagger do
 
       expect(html).to include("swagger-ui-dist@#{described_class::SWAGGER_UI_VERSION}")
       expect(html).to include('swagger-ui-bundle.js')
+      expect(html).to include('swagger-ui-standalone-preset.js')
       expect(html).to include('swagger-ui.css')
     end
 
@@ -86,6 +111,7 @@ RSpec.describe Zodra::Swagger do
         expect(html).to include('urls: [')
         expect(html).to include("name: 'api-v1'")
         expect(html).to include("name: 'api-v2'")
+        expect(html).to include("\"urls.primaryName\": 'api-v1'")
       end
     end
   end
@@ -98,9 +124,9 @@ RSpec.describe Zodra::Swagger do
     end
 
     it 'returns OpenAPI JSON for valid slug' do
-      env = { 'action_dispatch.request.path_parameters' => { slug: 'api' } }
+      env = { 'SCRIPT_NAME' => '/docs' }
 
-      status, headers, body = described_class.serve_spec(env)
+      status, headers, body = described_class.serve_spec(env, 'api')
 
       expect(status).to eq(200)
       expect(headers['content-type']).to eq('application/json')
@@ -108,9 +134,9 @@ RSpec.describe Zodra::Swagger do
     end
 
     it 'returns 404 for unknown slug' do
-      env = { 'action_dispatch.request.path_parameters' => { slug: 'unknown' } }
+      env = { 'SCRIPT_NAME' => '/docs' }
 
-      status, _, body = described_class.serve_spec(env)
+      status, _, body = described_class.serve_spec(env, 'unknown')
 
       expect(status).to eq(404)
       expect(JSON.parse(body.first)).to include('error' => 'not found')

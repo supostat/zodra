@@ -353,7 +353,8 @@ module Zodra
       def openapi_path(path)
         return path unless path
 
-        path.gsub(/:(\w+)/, '{\1}')
+        stripped = @base_path ? path.delete_prefix(@base_path) : path
+        stripped.gsub(/:(\w+)/, '{\1}')
       end
 
       def extract_path_params(path)

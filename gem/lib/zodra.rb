@@ -154,7 +154,6 @@ module Zodra
         loader.ignore("#{__dir__}/zodra/tasks")
         loader.ignore("#{__dir__}/zodra/railtie.rb")
         loader.ignore("#{__dir__}/zodra/swagger.rb")
-        loader.ignore("#{__dir__}/zodra/swagger")
         loader.setup
       end
     end
