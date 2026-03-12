@@ -187,6 +187,6 @@ export const UpdateSettingsParamsSchema = z.object({
 });
 
 export const SettingsContract = {
-  show: { method: 'GET' as const, path: '/settings/:id' as const, params: ShowSettingsParamsSchema },
-  update: { method: 'PATCH' as const, path: '/settings/:id' as const, params: UpdateSettingsParamsSchema },
+  show: { method: 'GET' as const, path: '/settings' as const, params: ShowSettingsParamsSchema },
+  update: { method: 'PATCH' as const, path: '/settings' as const, params: UpdateSettingsParamsSchema },
 } as const;

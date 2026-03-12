@@ -128,7 +128,7 @@ module Zodra
 
           crud = Resource::CRUD_ACTIONS[action_name]
           action.http_method = crud[:http_method]
-          action.path = crud[:member] ? "#{resource_path}/:id" : resource_path
+          action.path = crud[:member] && !resource.singular? ? "#{resource_path}/:id" : resource_path
         end
 
         resource.custom_actions.each do |custom|
@@ -136,7 +136,7 @@ module Zodra
           next unless action
 
           action.http_method = custom[:http_method]
-          action.path = custom[:member] ? "#{resource_path}/:id/#{custom[:name]}" : "#{resource_path}/#{custom[:name]}"
+          action.path = custom[:member] && !resource.singular? ? "#{resource_path}/:id/#{custom[:name]}" : "#{resource_path}/#{custom[:name]}"
         end
       end
 

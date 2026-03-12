@@ -178,6 +178,6 @@ export interface UpdateSettingsParams {
 }
 
 export interface SettingsContract {
-  show: { method: 'GET'; path: '/settings/:id'; params: ShowSettingsParams };
-  update: { method: 'PATCH'; path: '/settings/:id'; params: UpdateSettingsParams };
+  show: { method: 'GET'; path: '/settings'; params: ShowSettingsParams };
+  update: { method: 'PATCH'; path: '/settings'; params: UpdateSettingsParams };
 }
