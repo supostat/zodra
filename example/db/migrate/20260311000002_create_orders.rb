@@ -6,7 +6,7 @@ class CreateOrders < ActiveRecord::Migration[8.0]
       t.string :number, null: false
       t.string :status, null: false, default: 'draft'
       t.references :customer, type: :uuid, null: false, foreign_key: true
-      t.jsonb :payment_method
+      t.json :payment_method
       t.decimal :total_amount, precision: 10, scale: 2, null: false, default: 0
       t.string :shipping_address
       t.date :estimated_delivery

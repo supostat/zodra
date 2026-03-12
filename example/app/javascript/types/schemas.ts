@@ -88,11 +88,11 @@ export const DestroyCustomersParamsSchema = z.object({
 });
 
 export const CustomersContract = {
-  index: { method: 'GET' as const, path: '/api/v1/customers' as const, params: IndexCustomersParamsSchema, response: CustomerSummarySchema, collection: true as const },
-  show: { method: 'GET' as const, path: '/api/v1/customers/:id' as const, params: ShowCustomersParamsSchema, response: CustomerSchema },
-  create: { method: 'POST' as const, path: '/api/v1/customers' as const, params: CreateCustomersParamsSchema, response: CustomerSchema },
-  update: { method: 'PATCH' as const, path: '/api/v1/customers/:id' as const, params: UpdateCustomersParamsSchema, response: CustomerSchema },
-  destroy: { method: 'DELETE' as const, path: '/api/v1/customers/:id' as const, params: DestroyCustomersParamsSchema },
+  index: { method: 'GET' as const, path: '/customers' as const, params: IndexCustomersParamsSchema, response: CustomerSummarySchema, collection: true as const },
+  show: { method: 'GET' as const, path: '/customers/:id' as const, params: ShowCustomersParamsSchema, response: CustomerSchema },
+  create: { method: 'POST' as const, path: '/customers' as const, params: CreateCustomersParamsSchema, response: CustomerSchema },
+  update: { method: 'PATCH' as const, path: '/customers/:id' as const, params: UpdateCustomersParamsSchema, response: CustomerSchema },
+  destroy: { method: 'DELETE' as const, path: '/customers/:id' as const, params: DestroyCustomersParamsSchema },
 } as const;
 
 export const IndexOrdersParamsSchema = z.object({
@@ -130,12 +130,12 @@ export type ConfirmOrdersBusinessError = { code: 'not_found' | 'invalid_transiti
 export type CancelOrdersBusinessError = { code: 'not_found' | 'invalid_transition'; message: string };
 
 export const OrdersContract = {
-  index: { method: 'GET' as const, path: '/api/v1/orders' as const, params: IndexOrdersParamsSchema, response: OrderSchema, collection: true as const },
-  show: { method: 'GET' as const, path: '/api/v1/orders/:id' as const, params: ShowOrdersParamsSchema, response: OrderSchema },
-  create: { method: 'POST' as const, path: '/api/v1/orders' as const, params: CreateOrdersParamsSchema, response: OrderSchema, errors: [{ code: 'validation_failed' as const, status: 422 as const }] as const },
-  confirm: { method: 'PATCH' as const, path: '/api/v1/orders/:id/confirm' as const, params: ConfirmOrdersParamsSchema, response: OrderSchema, errors: [{ code: 'not_found' as const, status: 404 as const }, { code: 'invalid_transition' as const, status: 422 as const }] as const },
-  cancel: { method: 'PATCH' as const, path: '/api/v1/orders/:id/cancel' as const, params: CancelOrdersParamsSchema, response: OrderSchema, errors: [{ code: 'not_found' as const, status: 404 as const }, { code: 'invalid_transition' as const, status: 422 as const }] as const },
-  search: { method: 'GET' as const, path: '/api/v1/orders/search' as const, params: SearchOrdersParamsSchema, response: OrderSchema, collection: true as const },
+  index: { method: 'GET' as const, path: '/orders' as const, params: IndexOrdersParamsSchema, response: OrderSchema, collection: true as const },
+  show: { method: 'GET' as const, path: '/orders/:id' as const, params: ShowOrdersParamsSchema, response: OrderSchema },
+  create: { method: 'POST' as const, path: '/orders' as const, params: CreateOrdersParamsSchema, response: OrderSchema, errors: [{ code: 'validation_failed' as const, status: 422 as const }] as const },
+  confirm: { method: 'PATCH' as const, path: '/orders/:id/confirm' as const, params: ConfirmOrdersParamsSchema, response: OrderSchema, errors: [{ code: 'not_found' as const, status: 404 as const }, { code: 'invalid_transition' as const, status: 422 as const }] as const },
+  cancel: { method: 'PATCH' as const, path: '/orders/:id/cancel' as const, params: CancelOrdersParamsSchema, response: OrderSchema, errors: [{ code: 'not_found' as const, status: 404 as const }, { code: 'invalid_transition' as const, status: 422 as const }] as const },
+  search: { method: 'GET' as const, path: '/orders/search' as const, params: SearchOrdersParamsSchema, response: OrderSchema, collection: true as const },
 } as const;
 
 export const IndexProductsParamsSchema = z.object({
@@ -168,11 +168,11 @@ export const DestroyProductsParamsSchema = z.object({
 });
 
 export const ProductsContract = {
-  index: { method: 'GET' as const, path: '/api/v1/products' as const, params: IndexProductsParamsSchema, response: ProductSchema, collection: true as const },
-  show: { method: 'GET' as const, path: '/api/v1/products/:id' as const, params: ShowProductsParamsSchema, response: ProductSchema },
-  create: { method: 'POST' as const, path: '/api/v1/products' as const, params: CreateProductsParamsSchema, response: ProductSchema },
-  update: { method: 'PATCH' as const, path: '/api/v1/products/:id' as const, params: UpdateProductsParamsSchema, response: ProductSchema },
-  destroy: { method: 'DELETE' as const, path: '/api/v1/products/:id' as const, params: DestroyProductsParamsSchema },
+  index: { method: 'GET' as const, path: '/products' as const, params: IndexProductsParamsSchema, response: ProductSchema, collection: true as const },
+  show: { method: 'GET' as const, path: '/products/:id' as const, params: ShowProductsParamsSchema, response: ProductSchema },
+  create: { method: 'POST' as const, path: '/products' as const, params: CreateProductsParamsSchema, response: ProductSchema },
+  update: { method: 'PATCH' as const, path: '/products/:id' as const, params: UpdateProductsParamsSchema, response: ProductSchema },
+  destroy: { method: 'DELETE' as const, path: '/products/:id' as const, params: DestroyProductsParamsSchema },
 } as const;
 
 export const ShowSettingsParamsSchema = z.object({
@@ -187,6 +187,6 @@ export const UpdateSettingsParamsSchema = z.object({
 });
 
 export const SettingsContract = {
-  show: { method: 'GET' as const, path: '/api/v1/settings/:id' as const, params: ShowSettingsParamsSchema },
-  update: { method: 'PATCH' as const, path: '/api/v1/settings/:id' as const, params: UpdateSettingsParamsSchema },
+  show: { method: 'GET' as const, path: '/settings/:id' as const, params: ShowSettingsParamsSchema },
+  update: { method: 'PATCH' as const, path: '/settings/:id' as const, params: UpdateSettingsParamsSchema },
 } as const;

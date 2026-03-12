@@ -85,11 +85,11 @@ export interface DestroyCustomersParams {
 }
 
 export interface CustomersContract {
-  index: { method: 'GET'; path: '/api/v1/customers'; params: IndexCustomersParams; response: CustomerSummary; collection: true };
-  show: { method: 'GET'; path: '/api/v1/customers/:id'; params: ShowCustomersParams; response: Customer };
-  create: { method: 'POST'; path: '/api/v1/customers'; params: CreateCustomersParams; response: Customer };
-  update: { method: 'PATCH'; path: '/api/v1/customers/:id'; params: UpdateCustomersParams; response: Customer };
-  destroy: { method: 'DELETE'; path: '/api/v1/customers/:id'; params: DestroyCustomersParams };
+  index: { method: 'GET'; path: '/customers'; params: IndexCustomersParams; response: CustomerSummary; collection: true };
+  show: { method: 'GET'; path: '/customers/:id'; params: ShowCustomersParams; response: Customer };
+  create: { method: 'POST'; path: '/customers'; params: CreateCustomersParams; response: Customer };
+  update: { method: 'PATCH'; path: '/customers/:id'; params: UpdateCustomersParams; response: Customer };
+  destroy: { method: 'DELETE'; path: '/customers/:id'; params: DestroyCustomersParams };
 }
 
 export interface IndexOrdersParams {
@@ -121,12 +121,12 @@ export interface SearchOrdersParams {
 }
 
 export interface OrdersContract {
-  index: { method: 'GET'; path: '/api/v1/orders'; params: IndexOrdersParams; response: Order; collection: true };
-  show: { method: 'GET'; path: '/api/v1/orders/:id'; params: ShowOrdersParams; response: Order };
-  create: { method: 'POST'; path: '/api/v1/orders'; params: CreateOrdersParams; response: Order };
-  confirm: { method: 'PATCH'; path: '/api/v1/orders/:id/confirm'; params: ConfirmOrdersParams; response: Order };
-  cancel: { method: 'PATCH'; path: '/api/v1/orders/:id/cancel'; params: CancelOrdersParams; response: Order };
-  search: { method: 'GET'; path: '/api/v1/orders/search'; params: SearchOrdersParams; response: Order; collection: true };
+  index: { method: 'GET'; path: '/orders'; params: IndexOrdersParams; response: Order; collection: true };
+  show: { method: 'GET'; path: '/orders/:id'; params: ShowOrdersParams; response: Order };
+  create: { method: 'POST'; path: '/orders'; params: CreateOrdersParams; response: Order };
+  confirm: { method: 'PATCH'; path: '/orders/:id/confirm'; params: ConfirmOrdersParams; response: Order };
+  cancel: { method: 'PATCH'; path: '/orders/:id/cancel'; params: CancelOrdersParams; response: Order };
+  search: { method: 'GET'; path: '/orders/search'; params: SearchOrdersParams; response: Order; collection: true };
 }
 
 export interface IndexProductsParams {
@@ -159,11 +159,11 @@ export interface DestroyProductsParams {
 }
 
 export interface ProductsContract {
-  index: { method: 'GET'; path: '/api/v1/products'; params: IndexProductsParams; response: Product; collection: true };
-  show: { method: 'GET'; path: '/api/v1/products/:id'; params: ShowProductsParams; response: Product };
-  create: { method: 'POST'; path: '/api/v1/products'; params: CreateProductsParams; response: Product };
-  update: { method: 'PATCH'; path: '/api/v1/products/:id'; params: UpdateProductsParams; response: Product };
-  destroy: { method: 'DELETE'; path: '/api/v1/products/:id'; params: DestroyProductsParams };
+  index: { method: 'GET'; path: '/products'; params: IndexProductsParams; response: Product; collection: true };
+  show: { method: 'GET'; path: '/products/:id'; params: ShowProductsParams; response: Product };
+  create: { method: 'POST'; path: '/products'; params: CreateProductsParams; response: Product };
+  update: { method: 'PATCH'; path: '/products/:id'; params: UpdateProductsParams; response: Product };
+  destroy: { method: 'DELETE'; path: '/products/:id'; params: DestroyProductsParams };
 }
 
 export interface ShowSettingsParams {
@@ -178,6 +178,6 @@ export interface UpdateSettingsParams {
 }
 
 export interface SettingsContract {
-  show: { method: 'GET'; path: '/api/v1/settings/:id'; params: ShowSettingsParams };
-  update: { method: 'PATCH'; path: '/api/v1/settings/:id'; params: UpdateSettingsParams };
+  show: { method: 'GET'; path: '/settings/:id'; params: ShowSettingsParams };
+  update: { method: 'PATCH'; path: '/settings/:id'; params: UpdateSettingsParams };
 }
