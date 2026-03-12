@@ -171,6 +171,33 @@ RSpec.describe Zodra::Export::ZodMapper do
       expect(result).not_to include('response:')
     end
 
+    it 'includes collection flag for collection actions' do
+      contract = build_contract(:products) do |c|
+        action = c.add_action(:index)
+        action.http_method = :get
+        action.path = '/products'
+        action.response_type = :product
+        action.collection!
+      end
+
+      result = mapper.map_contract(contract)
+
+      expect(result).to include('response: ProductSchema, collection: true as const')
+    end
+
+    it 'omits collection flag for non-collection actions' do
+      contract = build_contract(:products) do |c|
+        action = c.add_action(:show)
+        action.http_method = :get
+        action.path = '/products/:id'
+        action.response_type = :product
+      end
+
+      result = mapper.map_contract(contract)
+
+      expect(result).not_to include('collection')
+    end
+
     it 'generates empty descriptor for contract without actions' do
       contract = Zodra::Contract.new(name: :empty)
 

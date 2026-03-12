@@ -2,7 +2,6 @@ import { useState } from "react";
 import { useProducts, useDeleteProduct } from "../../hooks/use_products";
 import { ErrorMessage } from "../../components/error_message";
 import { ProductForm } from "./product_form";
-import type { Product } from "../../types/types";
 
 export function ProductsPage() {
   const { data, isLoading, error } = useProducts();
@@ -13,7 +12,7 @@ export function ProductsPage() {
   if (isLoading) return <p>Loading...</p>;
   if (error) return <ErrorMessage error={error} />;
 
-  const products = (data?.data ?? []) as Product[];
+  const products = data?.data ?? [];
 
   return (
     <div>

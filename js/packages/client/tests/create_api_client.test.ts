@@ -46,6 +46,7 @@ const ProductsContract = {
     path: "/products" as const,
     params: IndexProductsParamsSchema,
     response: ProductSchema,
+    collection: true as const,
   },
 } as const;
 
@@ -109,6 +110,24 @@ describe("createApiClient", () => {
         method: "GET",
       }),
     );
+  });
+
+  it("returns array data for collection actions", async () => {
+    const items = [
+      { id: "abc-123", name: "Widget", price: 9.99 },
+      { id: "def-456", name: "Gadget", price: 19.99 },
+    ];
+
+    const api = createApiClient({
+      baseUrl: "http://localhost:3000/api/v1",
+      contracts: { products: ProductsContract },
+      transport: mockTransport({ data: items }),
+    });
+
+    const result = await api.products.index({});
+
+    expect(result.data).toEqual(items);
+    expect(Array.isArray(result.data)).toBe(true);
   });
 
   it("sends POST request with JSON body", async () => {

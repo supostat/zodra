@@ -176,6 +176,33 @@ RSpec.describe Zodra::Export::TypeScriptMapper do
       expect(result).not_to include('response:')
     end
 
+    it 'includes collection flag for collection actions' do
+      contract = build_contract(:products) do |c|
+        action = c.add_action(:index)
+        action.http_method = :get
+        action.path = '/products'
+        action.response_type = :product
+        action.collection!
+      end
+
+      result = mapper.map_contract(contract)
+
+      expect(result).to include('response: Product; collection: true')
+    end
+
+    it 'omits collection flag for non-collection actions' do
+      contract = build_contract(:products) do |c|
+        action = c.add_action(:show)
+        action.http_method = :get
+        action.path = '/products/:id'
+        action.response_type = :product
+      end
+
+      result = mapper.map_contract(contract)
+
+      expect(result).not_to include('collection')
+    end
+
     it 'generates empty interface for contract without actions' do
       contract = Zodra::Contract.new(name: :empty)
 

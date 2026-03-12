@@ -22,6 +22,7 @@ export type ActionDefinition = {
   path: string;
   params: z.ZodType<Record<string, unknown>>;
   response?: z.ZodType;
+  collection?: boolean;
 };
 
 export type ContractDefinition = Record<string, ActionDefinition>;
@@ -29,11 +30,17 @@ export type ContractDefinition = Record<string, ActionDefinition>;
 type ActionClient<T extends ActionDefinition> = T extends {
   params: z.ZodType<infer P>;
   response: z.ZodType<infer R>;
+  collection: true;
 }
-  ? (params: P) => Promise<{ data: R }>
-  : T extends { params: z.ZodType<infer P> }
-    ? (params: P) => Promise<{ data: unknown }>
-    : never;
+  ? (params: P) => Promise<{ data: R[]; meta?: Record<string, unknown> }>
+  : T extends {
+        params: z.ZodType<infer P>;
+        response: z.ZodType<infer R>;
+      }
+    ? (params: P) => Promise<{ data: R }>
+    : T extends { params: z.ZodType<infer P> }
+      ? (params: P) => Promise<{ data: unknown }>
+      : never;
 
 export type ContractClient<T extends ContractDefinition> = {
   [K in keyof T]: ActionClient<T[K]>;

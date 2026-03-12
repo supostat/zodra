@@ -117,6 +117,7 @@ module Zodra
           params_type = "#{pascal_case(action.name)}#{name}Params"
           parts = ["method: '#{action.http_method.to_s.upcase}'", "path: '#{action.path}'", "params: #{params_type}"]
           parts << "response: #{pascal_case(action.response_type)}" if action.response_type
+          parts << 'collection: true' if action.collection?
           "  #{action.name}: { #{parts.join('; ')} };"
         end
 

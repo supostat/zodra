@@ -1,7 +1,6 @@
 import { Link } from "react-router";
 import { useOrders } from "../../hooks/use_orders";
 import { ErrorMessage } from "../../components/error_message";
-import type { Order } from "../../types/types";
 
 const STATUS_COLORS: Record<string, string> = {
   draft: "bg-gray-100 text-gray-700",
@@ -17,7 +16,7 @@ export function OrdersPage() {
   if (isLoading) return <p>Loading...</p>;
   if (error) return <ErrorMessage error={error} />;
 
-  const orders = (data?.data ?? []) as Order[];
+  const orders = data?.data ?? [];
 
   return (
     <div>

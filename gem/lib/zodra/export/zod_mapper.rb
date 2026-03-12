@@ -172,6 +172,7 @@ module Zodra
           parts = ["method: '#{action.http_method.to_s.upcase}' as const", "path: '#{action.path}' as const",
                    "params: #{params_schema}"]
           parts << "response: #{pascal_case(action.response_type)}Schema" if action.response_type
+          parts << 'collection: true as const' if action.collection?
           if action.errors.any?
             error_entries = action.errors.values.map do |e|
               "{ code: '#{e[:code]}' as const, status: #{e[:status]} as const }"

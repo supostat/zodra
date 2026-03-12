@@ -85,7 +85,7 @@ export interface DestroyCustomersParams {
 }
 
 export interface CustomersContract {
-  index: { method: 'GET'; path: '/api/v1/customers'; params: IndexCustomersParams; response: CustomerSummary };
+  index: { method: 'GET'; path: '/api/v1/customers'; params: IndexCustomersParams; response: CustomerSummary; collection: true };
   show: { method: 'GET'; path: '/api/v1/customers/:id'; params: ShowCustomersParams; response: Customer };
   create: { method: 'POST'; path: '/api/v1/customers'; params: CreateCustomersParams; response: Customer };
   update: { method: 'PATCH'; path: '/api/v1/customers/:id'; params: UpdateCustomersParams; response: Customer };
@@ -121,12 +121,12 @@ export interface SearchOrdersParams {
 }
 
 export interface OrdersContract {
-  index: { method: 'GET'; path: '/api/v1/orders'; params: IndexOrdersParams; response: Order };
+  index: { method: 'GET'; path: '/api/v1/orders'; params: IndexOrdersParams; response: Order; collection: true };
   show: { method: 'GET'; path: '/api/v1/orders/:id'; params: ShowOrdersParams; response: Order };
   create: { method: 'POST'; path: '/api/v1/orders'; params: CreateOrdersParams; response: Order };
   confirm: { method: 'PATCH'; path: '/api/v1/orders/:id/confirm'; params: ConfirmOrdersParams; response: Order };
   cancel: { method: 'PATCH'; path: '/api/v1/orders/:id/cancel'; params: CancelOrdersParams; response: Order };
-  search: { method: 'GET'; path: '/api/v1/orders/search'; params: SearchOrdersParams; response: Order };
+  search: { method: 'GET'; path: '/api/v1/orders/search'; params: SearchOrdersParams; response: Order; collection: true };
 }
 
 export interface IndexProductsParams {
@@ -159,7 +159,7 @@ export interface DestroyProductsParams {
 }
 
 export interface ProductsContract {
-  index: { method: 'GET'; path: '/api/v1/products'; params: IndexProductsParams; response: Product };
+  index: { method: 'GET'; path: '/api/v1/products'; params: IndexProductsParams; response: Product; collection: true };
   show: { method: 'GET'; path: '/api/v1/products/:id'; params: ShowProductsParams; response: Product };
   create: { method: 'POST'; path: '/api/v1/products'; params: CreateProductsParams; response: Product };
   update: { method: 'PATCH'; path: '/api/v1/products/:id'; params: UpdateProductsParams; response: Product };
