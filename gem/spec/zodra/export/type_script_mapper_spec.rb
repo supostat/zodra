@@ -101,6 +101,21 @@ RSpec.describe Zodra::Export::TypeScriptMapper do
       expect(result).to include('  items: Item[];')
     end
 
+    it 'maps array of primitives' do
+      definition = build_object(:config,
+                                tags: { type: :array, of: :string },
+                                scores: { type: :array, of: :integer },
+                                ratios: { type: :array, of: :decimal },
+                                flags: { type: :array, of: :boolean })
+
+      result = mapper.map_definition(definition)
+
+      expect(result).to include('  tags: string[];')
+      expect(result).to include('  scores: number[];')
+      expect(result).to include('  ratios: number[];')
+      expect(result).to include('  flags: boolean[];')
+    end
+
     it 'maps uuid to string' do
       definition = build_object(:entity, id: { type: :uuid })
 

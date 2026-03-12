@@ -85,7 +85,8 @@ module Zodra
         elsif attribute.reference?
           pascal_case(attribute.reference_name)
         elsif attribute.array?
-          "#{pascal_case(attribute.of)}[]"
+          inner = resolve_array_element_type(attribute.of)
+          "#{inner}[]"
         else
           resolve_primitive_type(attribute.type)
         end
@@ -122,6 +123,17 @@ module Zodra
         end
 
         "export interface #{name}Contract {\n#{entries.join("\n")}\n}"
+      end
+
+      def resolve_array_element_type(element_type)
+        PRIMITIVE_MAP.fetch(element_type) do
+          scalar = ScalarRegistry.global.find(element_type)
+          if scalar
+            PRIMITIVE_MAP.fetch(scalar.base, pascal_case(element_type))
+          else
+            pascal_case(element_type)
+          end
+        end
       end
 
       def resolve_primitive_type(type)

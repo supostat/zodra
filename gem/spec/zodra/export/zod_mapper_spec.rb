@@ -85,6 +85,21 @@ RSpec.describe Zodra::Export::ZodMapper do
       expect(result).to include('items: z.array(ItemSchema)')
     end
 
+    it 'maps array of primitives' do
+      definition = build_object(:config,
+                                tags: { type: :array, of: :string },
+                                scores: { type: :array, of: :integer },
+                                ratios: { type: :array, of: :decimal },
+                                flags: { type: :array, of: :boolean })
+
+      result = mapper.map_definition(definition)
+
+      expect(result).to include('tags: z.array(z.string())')
+      expect(result).to include('scores: z.array(z.number().int())')
+      expect(result).to include('ratios: z.array(z.number())')
+      expect(result).to include('flags: z.array(z.boolean())')
+    end
+
     it 'maps attribute enum to z.enum' do
       definition = build_object(:product,
                                 currency: { type: :string, enum: %w[USD EUR GBP] })
