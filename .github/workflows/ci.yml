@@ -18,7 +18,7 @@ jobs:
       run:
         working-directory: gem
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       - uses: ruby/setup-ruby@v1
         with:
           ruby-version: "3.4"
@@ -37,7 +37,7 @@ jobs:
       run:
         working-directory: gem
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       - uses: ruby/setup-ruby@v1
         with:
           ruby-version: ${{ matrix.ruby }}
@@ -52,7 +52,7 @@ jobs:
       run:
         working-directory: js
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       - uses: pnpm/action-setup@v4
         with:
           version: 10
