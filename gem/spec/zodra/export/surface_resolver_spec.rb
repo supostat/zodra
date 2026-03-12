@@ -121,6 +121,27 @@ RSpec.describe Zodra::Export::SurfaceResolver do
       expect(result.map(&:name)).to contain_exactly(:customer)
     end
 
+    it 'includes source type from params with from:' do
+      Zodra.type(:order_input) do
+        string :shipping_address
+        array :items, of: :order_item_input
+      end
+      Zodra.type(:order_item_input) { uuid :product_id }
+      Zodra.type(:order) { string :number }
+      Zodra.type(:unused) { string :data }
+
+      Zodra.contract :orders do
+        action :create do
+          params from: :order_input
+          response :order
+        end
+      end
+
+      result = described_class.call(all_definitions, all_contracts)
+
+      expect(result.map(&:name)).to contain_exactly(:order_input, :order_item_input, :order)
+    end
+
     it 'preserves original definition order' do
       Zodra.type(:address) { string :city }
       Zodra.type(:customer) do

@@ -4,7 +4,8 @@ module Zodra
   class Action
     attr_reader :name, :params, :contract, :response_definition, :errors
 
-    attr_accessor :http_method, :path, :response_type, :error_keys_definition
+    attr_accessor :http_method, :path, :response_type, :error_keys_definition,
+                  :params_source_type
 
     def initialize(name:, contract: nil)
       @name = name

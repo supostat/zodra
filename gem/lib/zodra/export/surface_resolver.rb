@@ -27,6 +27,7 @@ module Zodra
         @contracts.each do |contract|
           contract.actions.each_value do |action|
             names << action.response_type if action.response_type
+            names << action.params_source_type if action.params_source_type
             collect_attribute_references(action.params, names)
             collect_attribute_references(action.response_definition, names) unless action.response_type
           end

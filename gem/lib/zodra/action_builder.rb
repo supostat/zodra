@@ -9,6 +9,7 @@ module Zodra
     def params(from: nil, pick: nil, omit: nil, partial: false, &block)
       if from
         source = resolve_type(from)
+        @action.params_source_type = from.to_sym
         TypeDeriver.new(source, pick:, omit:, partial:).apply(@action.params)
       end
 

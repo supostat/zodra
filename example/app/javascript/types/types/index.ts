@@ -6,5 +6,6 @@ export * from './order-item-input';
 export * from './order-status';
 export * from './payment-method';
 export * from './product';
+export * from './order-input';
 export * from './line-item';
 export * from './order';
