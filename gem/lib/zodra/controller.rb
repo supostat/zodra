@@ -45,6 +45,7 @@ module Zodra
     def zodra_params
       @zodra_params ||= begin
         raw = request.parameters.except(*RAILS_INTERNAL_KEYS)
+        raw = normalize_param_keys(raw)
         result = ParamsParser.call(raw, schema: zodra_action.params)
         raise ParamsError, result.errors unless result.valid?
 
@@ -107,6 +108,21 @@ module Zodra
 
       param_keys = zodra_action.params.attributes.keys
       @valid_error_keys_for_action = param_keys.empty? ? nil : param_keys + [:base]
+    end
+
+    def normalize_param_keys(value)
+      return value if Zodra.configuration.key_format == :keep
+
+      case value
+      when Hash
+        value.each_with_object({}) do |(key, val), result|
+          result[key.to_s.gsub(/([a-z\d])([A-Z])/, '\1_\2').downcase] = normalize_param_keys(val)
+        end
+      when Array
+        value.map { |item| normalize_param_keys(item) }
+      else
+        value
+      end
     end
   end
 end
