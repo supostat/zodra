@@ -50,10 +50,10 @@ export const ProductSchema = z.object({
   description: z.string().optional(),
   price: z.number().min(0),
   currency: z.enum(['USD', 'EUR', 'GBP']),
-  in_stock: z.boolean().default(true),
+  inStock: z.boolean().default(true),
   tags: z.array(z.string()),
-  created_at: z.iso.datetime(),
-  updated_at: z.iso.datetime(),
+  createdAt: z.iso.datetime(),
+  updatedAt: z.iso.datetime(),
 })
 
 export const CreateProductsParamsSchema = z.object({
@@ -61,7 +61,7 @@ export const CreateProductsParamsSchema = z.object({
   description: z.string().optional(),
   price: z.number().min(0),
   currency: z.enum(['USD', 'EUR', 'GBP']),
-  in_stock: z.boolean().default(true),
+  inStock: z.boolean().default(true),
   tags: z.array(z.string()),
   sku: z.string().min(1),
 })`,
@@ -80,7 +80,7 @@ const { data: product } = await api.products.create({
   name: "Premium Widget",
   price: 29.99,
   currency: "USD",
-  in_stock: true,
+  inStock: true,
   tags: ["new", "featured"],
   sku: "PWG-001",
 })

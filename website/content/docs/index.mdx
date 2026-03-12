@@ -30,18 +30,18 @@ end
 
 This generates:
 
-```typescript title="zodra/product.ts"
+```typescript title="zodra/schemas.ts"
 import { z } from "zod";
 
 export const ProductSchema = z.object({
-  id: z.string().uuid(),
+  id: z.uuid(),
   name: z.string().min(1).max(255),
   price: z.number().min(0),
   currency: z.enum(["USD", "EUR", "GBP"]),
-  in_stock: z.boolean().default(true),
+  inStock: z.boolean().default(true),
   tags: z.array(z.string()),
-  created_at: z.string().datetime(),
-  updated_at: z.string().datetime(),
+  createdAt: z.iso.datetime(),
+  updatedAt: z.iso.datetime(),
 });
 
 export type Product = z.infer<typeof ProductSchema>;

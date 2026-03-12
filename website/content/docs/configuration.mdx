@@ -30,15 +30,17 @@ config.output_path = "frontend/src/zodra"
 
 ### `key_format`
 
-Controls how Ruby snake_case keys are transformed in generated output.
+Controls how Ruby snake_case keys are transformed in generated output **and** how incoming request params are normalized at runtime.
 
 **Default:** `:camel`
 
-| Value    | Ruby key         | Generated key    |
-|----------|-----------------|-----------------|
-| `:camel` | `created_at`    | `createdAt`     |
-| `:snake` | `created_at`    | `created_at`    |
-| `:keep`  | `created_at`    | `created_at`    |
+| Value    | Ruby key      | Generated key | Incoming params               |
+|----------|--------------|---------------|-------------------------------|
+| `:camel` | `created_at` | `createdAt`   | `camelCase` → `snake_case`    |
+| `:snake` | `created_at` | `created_at`  | `camelCase` → `snake_case`    |
+| `:keep`  | `created_at` | `created_at`  | No normalization              |
+
+When `key_format` is `:camel` or `:snake`, Zodra automatically converts incoming camelCase request params to snake_case before validation. This means the frontend sends `camelCase` keys (matching the generated schemas), and the controller receives `snake_case` keys (matching Ruby conventions). With `:keep`, params are passed through as-is.
 
 ```ruby
 config.key_format = :snake

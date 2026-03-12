@@ -46,7 +46,7 @@ Custom scalars generate their base type in TypeScript. A `money` scalar with `ba
 
 ```typescript
 export const ProductSchema = z.object({
-  id: z.string().uuid(),
+  id: z.uuid(),
   name: z.string(),
   price: z.number(),
   discount: z.number().optional(),

@@ -30,9 +30,9 @@ Each type is registered globally in the TypeRegistry and can be referenced by na
 | `decimal`  | `BigDecimal`| `z.number()`         |
 | `number`   | `Numeric`   | `z.number()`         |
 | `boolean`  | `Boolean`   | `z.boolean()`        |
-| `datetime` | `DateTime`  | `z.string().datetime()` |
-| `date`     | `Date`      | `z.string().date()`  |
-| `uuid`     | `String`    | `z.string().uuid()`  |
+| `datetime` | `DateTime`  | `z.iso.datetime()`   |
+| `date`     | `Date`      | `z.iso.date()`       |
+| `uuid`     | `String`    | `z.uuid()`           |
 | `binary`   | `String`    | `z.string()`         |
 
 ## Optional fields
@@ -109,6 +109,30 @@ boolean :published, default: false
 string :role, default: "member"
 integer :priority, default: 0
 ```
+
+## Key aliasing
+
+Use `as:` to override the generated key name for a field. The Ruby attribute name stays the same for serialization, but the exported TypeScript/Zod key uses the alias:
+
+```ruby
+Zodra.type :product do
+  uuid :id
+  string :name
+  string :internal_code, as: "code"
+end
+```
+
+Generates:
+
+```typescript
+export const ProductSchema = z.object({
+  id: z.uuid(),
+  name: z.string(),
+  code: z.string(),   // aliased from :internal_code
+});
+```
+
+This is useful when the Ruby attribute name differs from the desired API field name.
 
 ## Timestamps
 

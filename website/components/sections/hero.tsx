@@ -19,8 +19,8 @@ const user = {
   name: "Alice",
   email: "alice@example.com",
   age: 28,
-  created_at: "2024-01-01T00:00:00Z",
-  updated_at: "2024-01-01T00:00:00Z",
+  createdAt: "2024-01-01T00:00:00Z",
+  updatedAt: "2024-01-01T00:00:00Z",
 }
 
 // Runtime validation with Zod

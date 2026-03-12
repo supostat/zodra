@@ -72,17 +72,17 @@ end
 
 ## `zodra_respond_collection`
 
-Renders an array wrapped in `{ data: [...], meta: { ... } }`:
+Renders an array wrapped in `{ data: [...] }`:
 
 ```ruby
 def index
   products = Product.all
   zodra_respond_collection(products)
-  # Response: { data: [...], meta: { ... } }
+  # Response: { data: [...] }
 end
 ```
 
-With custom meta:
+With optional meta:
 
 ```ruby
 zodra_respond_collection(products, meta: { total: products.count })
