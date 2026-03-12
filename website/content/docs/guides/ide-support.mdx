@@ -1,0 +1,177 @@
+---
+title: IDE Support
+description: Ruby LSP addon and VS Code extension for Zodra DSL
+---
+
+# IDE Support
+
+Zodra provides two complementary tools for IDE integration:
+
+- **Ruby LSP addon** — hover, completion, go-to-definition, and code lens for Zodra DSL in Ruby files
+- **VS Code extension** — auto-export, stale file detection, navigation between Ruby and TypeScript, and snippets
+
+## Ruby LSP Addon
+
+The addon activates automatically when Ruby LSP detects the `zodra` gem in your project.
+
+### Requirements
+
+- [Ruby LSP](https://github.com/Shopify/ruby-lsp) 0.22+
+- Zodra gem in your Gemfile
+
+### Features
+
+#### Hover
+
+Hover over any Zodra DSL call to see type documentation:
+
+- `Zodra.type`, `Zodra.enum`, `Zodra.union`, `Zodra.contract`, `Zodra.scalar` — shows definition info
+- Primitives (`string`, `integer`, `uuid`, etc.) — shows type mapping and available options
+
+#### Completion
+
+Inside a Zodra block, type completions suggest:
+
+- Primitive types (`string`, `integer`, `boolean`, `uuid`, etc.)
+- Registered type names for `reference` and `array of:` fields
+
+#### Go-to-definition
+
+Navigate from a type reference to its definition:
+
+```ruby title="app/contracts/orders.rb"
+Zodra.contract :orders do
+  action :create do
+    params from: :order_input  # Ctrl+Click → opens app/types/order_input.rb
+    response :order            # Ctrl+Click → opens app/types/order.rb
+  end
+end
+```
+
+#### Code Lens
+
+Each `Zodra.type`, `Zodra.enum`, `Zodra.union`, `Zodra.contract`, and `Zodra.scalar` definition shows an inline "Open generated TypeScript" link above the definition. Clicking it opens the corresponding generated `.ts` file.
+
+## VS Code Extension
+
+### Installation
+
+The extension is not yet published to the VS Code Marketplace. To install locally:
+
+```bash
+# Build the extension
+cd js/packages/vscode
+pnpm install
+pnpm build
+
+# Symlink into VS Code extensions directory
+ln -s "$(pwd)" ~/.vscode/extensions/zodra-vscode
+```
+
+Restart VS Code after creating the symlink.
+
+### Features
+
+#### Auto-export
+
+When any `.rb` file in your source paths changes, the extension automatically runs `zodra:export` to regenerate TypeScript files. A status bar indicator shows export progress.
+
+Disable with the `zodra.autoExport` setting.
+
+#### Stale file detection
+
+The extension periodically compares modification times of Ruby source files against the generated `index.ts`. If Ruby files are newer, a notification prompts you to re-export.
+
+#### Navigation commands
+
+| Command | Description |
+|---------|-------------|
+| `Zodra: Open Generated TypeScript` | From a Ruby type file, opens the corresponding `.ts` file |
+| `Zodra: Open Ruby Source` | From a generated `.ts` file, opens the corresponding Ruby definition |
+| `Zodra: Export TypeScript` | Manually runs `zodra:export` |
+
+#### Snippets
+
+The extension provides Ruby snippets for common Zodra definitions:
+
+| Prefix | Expands to |
+|--------|-----------|
+| `ztype` | `Zodra.type` block |
+| `zenum` | `Zodra.enum` definition |
+| `zunion` | `Zodra.union` block with variants |
+| `zcontract` | `Zodra.contract` block with action |
+| `zapi` | `Zodra.api` block with resources |
+| `zaction` | `action` block inside a contract |
+| `zscalar` | `Zodra.scalar` definition |
+
+### Configuration
+
+All settings are under the `zodra.*` namespace in VS Code settings.
+
+#### `zodra.autoExport`
+
+Automatically run export when Ruby definitions change.
+
+**Default:** `true`
+
+#### `zodra.outputPath`
+
+Path to generated TypeScript files relative to workspace root.
+
+**Default:** `"app/javascript/types"`
+
+#### `zodra.exportCommand`
+
+Shell command to run the export. Customize this if you use a Ruby version manager that requires a wrapper:
+
+**Default:** `"bundle exec rails zodra:export"`
+
+```json
+{
+  "zodra.exportCommand": "rbenv exec bundle exec rails zodra:export"
+}
+```
+
+#### `zodra.exportDebounceMs`
+
+Delay in milliseconds before auto-export triggers after a file change.
+
+**Default:** `1500`
+
+#### `zodra.sourcePaths`
+
+Directories to watch for Ruby definition changes.
+
+**Default:** `["app/types", "app/contracts", "config/apis"]`
+
+#### `zodra.staleCheck.enabled`
+
+Show a notification when generated TypeScript files may be outdated.
+
+**Default:** `true`
+
+#### `zodra.staleCheck.intervalMs`
+
+How often to check for stale files in milliseconds.
+
+**Default:** `60000`
+
+### Troubleshooting
+
+#### Export command fails with "bundler not found"
+
+VS Code tasks may not inherit your shell environment. Set `zodra.exportCommand` to include your Ruby version manager:
+
+```json
+{
+  "zodra.exportCommand": "rbenv exec bundle exec rails zodra:export"
+}
+```
+
+#### Extension doesn't activate
+
+The extension activates when the workspace contains `app/types/**/*.rb` files. If you're working in a monorepo, open the Rails project directory directly rather than the monorepo root.
+
+#### Code Lens shows "File not found"
+
+Run `rails zodra:export` to generate the TypeScript files. The code lens links to the expected output path — if the files haven't been generated yet, clicking the link shows a warning.
