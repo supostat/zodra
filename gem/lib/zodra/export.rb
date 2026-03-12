@@ -14,6 +14,7 @@ module Zodra
 
       mapper = mapper_class.new(key_format:)
       contracts = ContractRegistry.global.to_a
+      base_path = ApiRegistry.global.to_a.first&.base_path
 
       definitions = SurfaceResolver.call(TypeRegistry.global.to_a, contracts)
       analysis = TypeAnalysis.call(definitions)
@@ -21,7 +22,7 @@ module Zodra
       parts = []
       parts << "import { z } from '#{zod_import}';" if format == :zod
       parts << mapper.map_definitions(analysis.sorted, cycles: analysis.cycles)
-      parts << mapper.map_contracts(contracts) unless contracts.empty?
+      parts << mapper.map_contracts(contracts, base_path:) unless contracts.empty?
       parts.reject(&:empty?).join("\n\n")
     end
 

@@ -460,9 +460,9 @@ RSpec.describe 'Export pipeline', :acceptance do
     it 'populates method and path from API resource definitions' do
       result = Zodra::Export.generate(:zod)
 
-      expect(result).to include("method: 'GET' as const, path: '/api/v1/products' as const, params: IndexProductsParamsSchema")
-      expect(result).to include("method: 'GET' as const, path: '/api/v1/products/:id' as const, params: ShowProductsParamsSchema")
-      expect(result).to include("method: 'POST' as const, path: '/api/v1/products' as const, params: CreateProductsParamsSchema")
+      expect(result).to include("method: 'GET' as const, path: '/products' as const, params: IndexProductsParamsSchema")
+      expect(result).to include("method: 'GET' as const, path: '/products/:id' as const, params: ShowProductsParamsSchema")
+      expect(result).to include("method: 'POST' as const, path: '/products' as const, params: CreateProductsParamsSchema")
     end
 
     it 'generates contracts barrel with baseUrl' do
@@ -476,9 +476,9 @@ RSpec.describe 'Export pipeline', :acceptance do
     it 'generates TypeScript contract descriptor with resolved routes' do
       result = Zodra::Export.generate(:typescript)
 
-      expect(result).to include("method: 'GET'; path: '/api/v1/products'")
-      expect(result).to include("method: 'POST'; path: '/api/v1/products'")
-      expect(result).to include("method: 'GET'; path: '/api/v1/products/:id'")
+      expect(result).to include("method: 'GET'; path: '/products'")
+      expect(result).to include("method: 'POST'; path: '/products'")
+      expect(result).to include("method: 'GET'; path: '/products/:id'")
     end
   end
 end

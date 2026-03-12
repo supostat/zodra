@@ -33,15 +33,15 @@ module Zodra
         definitions.map { |definition| map_definition(definition, lazy: cycles.include?(definition.name)) }.join("\n\n")
       end
 
-      def map_contract(contract)
+      def map_contract(contract, base_path: nil)
         params_output = map_contract_params(contract)
         error_types_output = map_contract_error_types(contract)
-        descriptor_output = map_contract_descriptor(contract)
+        descriptor_output = map_contract_descriptor(contract, base_path:)
         [params_output, error_types_output, descriptor_output].compact.reject(&:empty?).join("\n\n")
       end
 
-      def map_contracts(contracts)
-        contracts.map { |contract| map_contract(contract) }.join("\n\n")
+      def map_contracts(contracts, base_path: nil)
+        contracts.map { |contract| map_contract(contract, base_path:) }.join("\n\n")
       end
 
       private
@@ -164,13 +164,14 @@ module Zodra
         parts.join("\n\n")
       end
 
-      def map_contract_descriptor(contract)
+      def map_contract_descriptor(contract, base_path: nil)
         name = pascal_case(contract.name)
         return "export const #{name}Contract = {} as const;" if contract.actions.empty?
 
         entries = contract.actions.values.map do |action|
+          path = strip_base_path(action.path, base_path)
           params_schema = "#{pascal_case(action.name)}#{name}ParamsSchema"
-          parts = ["method: '#{action.http_method.to_s.upcase}' as const", "path: '#{action.path}' as const",
+          parts = ["method: '#{action.http_method.to_s.upcase}' as const", "path: '#{path}' as const",
                    "params: #{params_schema}"]
           parts << "response: #{pascal_case(action.response_type)}Schema" if action.response_type
           parts << 'collection: true as const' if action.collection?
