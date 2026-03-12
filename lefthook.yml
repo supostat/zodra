@@ -2,7 +2,6 @@ pre-commit:
   parallel: true
   commands:
     rubocop:
-      glob: "*.rb"
       root: gem/
       run: bundle exec rubocop --parallel {staged_files}
     typecheck-js:
