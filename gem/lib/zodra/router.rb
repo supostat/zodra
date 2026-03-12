@@ -39,15 +39,15 @@ module Zodra
 
       context.send(resource_method, resource.name, **options) do
         member_actions.each do |custom|
-          member { send(custom[:http_method], custom[:name]) }
+          context.member { context.send(custom[:http_method], custom[:name]) }
         end
 
         collection_actions.each do |custom|
-          collection { send(custom[:http_method], custom[:name]) }
+          context.collection { context.send(custom[:http_method], custom[:name]) }
         end
 
         children.each do |child|
-          router.send(:draw_resource, self, child)
+          router.send(:draw_resource, context, child)
         end
       end
     end
