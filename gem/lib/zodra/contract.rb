@@ -3,11 +3,17 @@
 module Zodra
   class Contract
     attr_reader :name, :actions, :types
+    attr_writer :openapi
 
     def initialize(name:)
       @name = name
       @actions = {}
       @types = TypeRegistry.new
+      @openapi = true
+    end
+
+    def openapi?
+      @openapi
     end
 
     def add_action(action_name)

@@ -24,4 +24,16 @@ RSpec.describe Zodra::Contract do
       expect(contract.find_action(:unknown)).to be_nil
     end
   end
+
+  describe '#openapi?' do
+    it 'defaults to true' do
+      expect(contract.openapi?).to be true
+    end
+
+    it 'can be disabled' do
+      contract.openapi = false
+
+      expect(contract.openapi?).to be false
+    end
+  end
 end

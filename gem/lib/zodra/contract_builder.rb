@@ -6,6 +6,10 @@ module Zodra
       @contract = contract
     end
 
+    def openapi(enabled)
+      @contract.openapi = enabled
+    end
+
     def action(name, &block)
       action = @contract.add_action(name)
       ActionBuilder.new(action).instance_eval(&block) if block
