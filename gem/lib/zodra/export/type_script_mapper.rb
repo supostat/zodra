@@ -47,17 +47,20 @@ module Zodra
 
       def map_object(definition)
         properties = definition.attributes.values.map { |attr| map_property(attr) }
-        "export interface #{pascal_case(definition.name)} {\n#{properties.join("\n")}\n}"
+        body = "export interface #{pascal_case(definition.name)} {\n#{properties.join("\n")}\n}"
+        prepend_jsdoc(body, definition.description)
       end
 
       def map_enum(definition)
         values = definition.values.map { |value| "'#{value}'" }.join(' | ')
-        "export type #{pascal_case(definition.name)} = #{values};"
+        body = "export type #{pascal_case(definition.name)} = #{values};"
+        prepend_jsdoc(body, definition.description)
       end
 
       def map_union(definition)
         variants = definition.variants.map { |variant| map_variant(variant, definition.discriminator) }
-        "export type #{pascal_case(definition.name)} =\n#{variants.join("\n")};"
+        body = "export type #{pascal_case(definition.name)} =\n#{variants.join("\n")};"
+        prepend_jsdoc(body, definition.description)
       end
 
       def map_variant(variant, discriminator)
@@ -74,7 +77,9 @@ module Zodra
         optional_marker = attribute.optional? ? '?' : ''
         type_string = map_type(attribute)
         type_string = [type_string, 'null'].sort.join(' | ') if attribute.nullable?
-        "  #{key}#{optional_marker}: #{type_string};"
+        line = "  #{key}#{optional_marker}: #{type_string};"
+        jsdoc = property_jsdoc(attribute)
+        jsdoc ? "#{jsdoc}\n#{line}" : line
       end
 
       def map_type(attribute)
@@ -124,6 +129,21 @@ module Zodra
         end
 
         "export interface #{name}Contract {\n#{entries.join("\n")}\n}"
+      end
+
+      def prepend_jsdoc(body, description)
+        return body unless description
+
+        "/** #{description} */\n#{body}"
+      end
+
+      def property_jsdoc(attribute)
+        parts = []
+        parts << attribute.description if attribute.description
+        parts << '@deprecated' if attribute.deprecated?
+        return nil if parts.empty?
+
+        "  /** #{parts.join(' - ')} */"
       end
 
       def resolve_array_element_type(element_type)

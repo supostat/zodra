@@ -6,6 +6,14 @@ module Zodra
       @action = action
     end
 
+    def description(text)
+      @action.description = text
+    end
+
+    def deprecated!(reason = nil)
+      @action.deprecated_message = reason || 'Deprecated'
+    end
+
     def params(from: nil, pick: nil, omit: nil, partial: false, &block)
       if from
         source = resolve_type(from)

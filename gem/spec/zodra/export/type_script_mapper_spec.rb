@@ -143,6 +143,62 @@ RSpec.describe Zodra::Export::TypeScriptMapper do
     end
   end
 
+  describe 'description and deprecated' do
+    it 'adds JSDoc comment for type description' do
+      definition = build_object(:product, name: { type: :string })
+      definition.description = 'A product in the catalog'
+
+      result = mapper.map_definition(definition)
+
+      expect(result).to start_with("/** A product in the catalog */\n")
+      expect(result).to include('export interface Product {')
+    end
+
+    it 'adds JSDoc comment for enum description' do
+      definition = Zodra::Definition.new(name: :status, kind: :enum, values: %i[draft sent])
+      definition.description = 'Order status'
+
+      result = mapper.map_definition(definition)
+
+      expect(result).to start_with("/** Order status */\n")
+    end
+
+    it 'adds JSDoc comment for attribute description' do
+      definition = build_object(:product,
+                                name: { type: :string, description: 'Display name' })
+
+      result = mapper.map_definition(definition)
+
+      expect(result).to include("  /** Display name */\n  name: string;")
+    end
+
+    it 'adds @deprecated JSDoc tag for deprecated attribute' do
+      definition = build_object(:product,
+                                legacy_sku: { type: :string, deprecated: true })
+
+      result = mapper.map_definition(definition)
+
+      expect(result).to include("  /** @deprecated */\n  legacySku: string;")
+    end
+
+    it 'combines description and deprecated in JSDoc' do
+      definition = build_object(:product,
+                                old_code: { type: :string, description: 'Use sku instead', deprecated: true })
+
+      result = mapper.map_definition(definition)
+
+      expect(result).to include("  /** Use sku instead - @deprecated */\n  oldCode: string;")
+    end
+
+    it 'omits JSDoc when no description or deprecated' do
+      definition = build_object(:product, name: { type: :string })
+
+      result = mapper.map_definition(definition)
+
+      expect(result).not_to include('/**')
+    end
+  end
+
   describe 'key_format :keep' do
     it 'preserves original keys' do
       keep_mapper = described_class.new(key_format: :keep)

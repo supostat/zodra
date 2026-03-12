@@ -44,7 +44,7 @@ Metrics/PerceivedComplexity:
   Max: 18
 
 Metrics/ParameterLists:
-  Max: 13
+  Max: 15
 
 Layout/LineLength:
   Max: 160

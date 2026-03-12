@@ -31,7 +31,9 @@ module Zodra
                            max: attribute.max,
                            enum: attribute.enum,
                            of: attribute.of,
-                           reference_name: attribute.reference_name)
+                           reference_name: attribute.reference_name,
+                           description: attribute.description,
+                           deprecated: attribute.deprecated?)
     end
 
     def selected_attributes

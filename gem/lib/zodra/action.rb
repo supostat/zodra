@@ -5,7 +5,7 @@ module Zodra
     attr_reader :name, :params, :contract, :response_definition, :errors
 
     attr_accessor :http_method, :path, :response_type, :error_keys_definition,
-                  :params_source_type
+                  :params_source_type, :description, :deprecated_message
 
     def initialize(name:, contract: nil)
       @name = name
@@ -24,6 +24,10 @@ module Zodra
 
     def find_error(code)
       @errors[code.to_sym]
+    end
+
+    def deprecated?
+      !@deprecated_message.nil?
     end
 
     def collection?

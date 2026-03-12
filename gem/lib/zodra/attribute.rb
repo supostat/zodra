@@ -2,11 +2,12 @@
 
 module Zodra
   class Attribute
-    attr_reader :name, :type, :format, :default, :min, :max, :enum, :of, :reference_name, :enum_type_name, :as
+    attr_reader :name, :type, :format, :default, :min, :max, :enum, :of, :reference_name, :enum_type_name, :as,
+                :description
 
     def initialize(name:, type:, optional: false, nullable: false, format: nil,
                    default: nil, min: nil, max: nil, enum: nil, of: nil, reference_name: nil,
-                   enum_type_name: nil, as: nil)
+                   enum_type_name: nil, as: nil, description: nil, deprecated: false)
       @name = name.to_sym
       @type = type.to_sym
       @optional = optional
@@ -20,6 +21,8 @@ module Zodra
       @reference_name = reference_name
       @enum_type_name = enum_type_name
       @as = as&.to_s
+      @description = description
+      @deprecated = deprecated
     end
 
     def optional?
@@ -36,6 +39,10 @@ module Zodra
 
     def array?
       type == :array
+    end
+
+    def deprecated?
+      @deprecated
     end
 
     def enum_ref?

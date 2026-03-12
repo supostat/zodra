@@ -148,6 +148,70 @@ RSpec.describe Zodra::Export::ZodMapper do
     end
   end
 
+  describe 'description and deprecated' do
+    it 'adds .describe() for type description' do
+      definition = build_object(:product, name: { type: :string })
+      definition.description = 'A product in the catalog'
+
+      result = mapper.map_definition(definition)
+
+      expect(result).to include("}).describe('A product in the catalog');")
+    end
+
+    it 'adds .describe() for enum description' do
+      definition = Zodra::Definition.new(name: :status, kind: :enum, values: %i[draft sent])
+      definition.description = 'Order status'
+
+      result = mapper.map_definition(definition)
+
+      expect(result).to include(".describe('Order status');")
+    end
+
+    it 'adds .describe() for attribute description' do
+      definition = build_object(:product,
+                                name: { type: :string, description: 'Display name' })
+
+      result = mapper.map_definition(definition)
+
+      expect(result).to include("name: z.string().describe('Display name')")
+    end
+
+    it 'adds .describe(@deprecated) for deprecated attribute' do
+      definition = build_object(:product,
+                                legacy_sku: { type: :string, deprecated: true })
+
+      result = mapper.map_definition(definition)
+
+      expect(result).to include("legacySku: z.string().describe('@deprecated')")
+    end
+
+    it 'combines description and deprecated in .describe()' do
+      definition = build_object(:product,
+                                old_code: { type: :string, description: 'Use sku instead', deprecated: true })
+
+      result = mapper.map_definition(definition)
+
+      expect(result).to include("oldCode: z.string().describe('Use sku instead - @deprecated')")
+    end
+
+    it 'escapes single quotes in description' do
+      definition = build_object(:product,
+                                name: { type: :string, description: "it's a name" })
+
+      result = mapper.map_definition(definition)
+
+      expect(result).to include("name: z.string().describe('it\\'s a name')")
+    end
+
+    it 'omits .describe() when no description or deprecated' do
+      definition = build_object(:product, name: { type: :string })
+
+      result = mapper.map_definition(definition)
+
+      expect(result).not_to include('describe')
+    end
+  end
+
   describe '#map_contract' do
     it 'generates params schemas with contract-scoped names' do
       contract = build_contract(:invoices) do |c|

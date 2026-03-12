@@ -3,6 +3,7 @@
 module Zodra
   class Definition
     attr_reader :name, :kind, :discriminator, :values, :attributes, :variants
+    attr_accessor :description
 
     def initialize(name:, kind:, discriminator: nil, values: nil)
       @name = name

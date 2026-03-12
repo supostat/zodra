@@ -8,6 +8,10 @@ module Zodra
       @definition = definition
     end
 
+    def description(text)
+      @definition.description = text
+    end
+
     PRIMITIVES.each do |primitive_type|
       define_method(primitive_type) do |name, **options|
         @definition.add_attribute(name, type: primitive_type, **options)

@@ -50,6 +50,7 @@ module Zodra
         name = pascal_case(definition.name)
         properties = definition.attributes.values.map { |attr| "  #{map_property(attr)}," }
         body = "z.object({\n#{properties.join("\n")}\n})"
+        body = "#{body}.describe('#{escape_js(definition.description)}')" if definition.description
 
         if lazy
           "export const #{name}Schema: z.ZodType<#{name}> = z.lazy(() => #{body});"
@@ -60,7 +61,9 @@ module Zodra
 
       def map_enum(definition)
         values = definition.values.map { |value| "'#{value}'" }.join(', ')
-        "export const #{pascal_case(definition.name)}Schema = z.enum([#{values}]);"
+        schema = "z.enum([#{values}])"
+        schema = "#{schema}.describe('#{escape_js(definition.description)}')" if definition.description
+        "export const #{pascal_case(definition.name)}Schema = #{schema};"
       end
 
       def map_union(definition, lazy: false)
@@ -121,7 +124,7 @@ module Zodra
         base = "#{base}.default(#{format_default(attribute.default)})" unless attribute.default.nil?
         base = "#{base}.nullable()" if attribute.nullable?
         base = "#{base}.optional()" if attribute.optional?
-        base
+        apply_describe(base, attribute)
       end
 
       def format_default(value)
@@ -185,6 +188,19 @@ module Zodra
         end
 
         "export const #{name}Contract = {\n#{entries.join(",\n")},\n} as const;"
+      end
+
+      def apply_describe(base, attribute)
+        parts = []
+        parts << attribute.description if attribute.description
+        parts << '@deprecated' if attribute.deprecated?
+        return base if parts.empty?
+
+        "#{base}.describe('#{escape_js(parts.join(' - '))}')"
+      end
+
+      def escape_js(string)
+        string.gsub("'", "\\\\'")
       end
 
       def resolve_array_element_type(element_type)
