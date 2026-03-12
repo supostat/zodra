@@ -5,8 +5,6 @@ module Api
     class ProductsController < ApplicationController
       include Zodra::Controller
 
-      zodra_contract :products
-
       def index
         products = Product.all
         zodra_respond_collection(products)

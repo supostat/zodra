@@ -73,8 +73,6 @@ module Api
     class ProductsController < ApplicationController
       include Zodra::Controller
 
-      zodra_contract :products
-
       def index
         zodra_respond_collection(Product.all)
       end

@@ -5,8 +5,6 @@ module Api
     class SettingsController < ApplicationController
       include Zodra::Controller
 
-      zodra_contract :settings
-
       def show
         zodra_respond(Setting.instance)
       end

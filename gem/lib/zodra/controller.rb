@@ -23,7 +23,7 @@ module Zodra
       end
 
       def zodra_contract_name
-        @zodra_contract_name
+        @zodra_contract_name || name.demodulize.delete_suffix('Controller').underscore.to_sym
       end
 
       def zodra_rescue(action_name, exception_class, as:)

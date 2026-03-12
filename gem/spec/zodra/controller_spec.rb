@@ -70,6 +70,24 @@ RSpec.describe Zodra::Controller do
     Zodra::ContractRegistry.global.clear!
   end
 
+  describe '.zodra_contract_name' do
+    it 'infers contract name from controller class name' do
+      klass = Class.new do
+        def self.rescue_from(*); end
+        def self.wrap_parameters(*); end
+        def self.name = 'Api::V1::ProductsController'
+
+        include Zodra::Controller
+      end
+
+      expect(klass.zodra_contract_name).to eq(:products)
+    end
+
+    it 'prefers explicit name over inferred' do
+      expect(controller_class.zodra_contract_name).to eq(:invoices)
+    end
+  end
+
   describe '#zodra_errors' do
     let(:action_name) { 'create' }
 

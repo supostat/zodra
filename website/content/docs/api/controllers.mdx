@@ -14,18 +14,20 @@ module Api
   module V1
     class ProductsController < ApplicationController
       include Zodra::Controller
-
-      zodra_contract :products
     end
   end
 end
 ```
 
+Zodra infers the contract name from the controller class: `ProductsController` → `:products`.
+
 ### `zodra_contract`
 
-Associates the controller with a contract. The contract name determines which action definitions (params, response, errors) apply to each controller action.
+Use `zodra_contract` to override the inferred name when the controller and contract names don't match:
 
-If omitted, Zodra infers the contract from the controller name.
+```ruby
+zodra_contract :inventory  # uses the :inventory contract instead of :products
+```
 
 ## `zodra_params`
 
@@ -96,8 +98,6 @@ Maps exceptions to error codes defined in the contract:
 class OrdersController < ApplicationController
   include Zodra::Controller
 
-  zodra_contract :orders
-
   zodra_rescue :confirm, InvalidTransitionError, as: :invalid_transition
   zodra_rescue :cancel, InvalidTransitionError, as: :invalid_transition
 
@@ -151,8 +151,6 @@ module Api
   module V1
     class CustomersController < ApplicationController
       include Zodra::Controller
-
-      zodra_contract :customers
 
       def index
         zodra_respond_collection(Customer.all)

@@ -113,8 +113,6 @@ Map Ruby exceptions to error codes declared in your contract:
 class OrdersController < ApplicationController
   include Zodra::Controller
 
-  zodra_contract :orders
-
   zodra_rescue :confirm, InvalidTransitionError, as: :invalid_transition
   zodra_rescue :cancel, InvalidTransitionError, as: :invalid_transition
 
