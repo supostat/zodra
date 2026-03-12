@@ -5,6 +5,7 @@ gem "sqlite3", ">= 2.1"
 gem "puma", ">= 5.0"
 
 gem "zodra", path: "../gem"
+gem "vite_rails"
 
 group :development, :test do
   gem "debug", platforms: %i[mri windows], require: "debug/prelude"

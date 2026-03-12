@@ -5,3 +5,6 @@
 /db/*.sqlite3-*
 config/master.key
 config/credentials/*.key
+/public/vite-dev
+/public/vite-test
+/public/vite
