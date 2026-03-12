@@ -112,9 +112,15 @@ After running `rails zodra:export`, generated TypeScript files appear in the con
 
 ```
 app/javascript/types/          # default output_path
-├── schemas.ts                 # All Zod schemas
-├── types.ts                   # All TypeScript interfaces
-└── contracts.ts               # Contract map and baseUrl
+├── types/
+│   ├── index.ts               # Re-exports all types
+│   ├── product.ts             # Zod schema + TypeScript interface
+│   └── ...
+├── contracts/
+│   ├── index.ts               # Contracts map + baseUrl
+│   ├── products.ts            # Params schemas + contract descriptor
+│   └── ...
+└── index.ts                   # Re-exports types/ and contracts/
 ```
 
 These files should be committed to version control so the frontend can import them directly.

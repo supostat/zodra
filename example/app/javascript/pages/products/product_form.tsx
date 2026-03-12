@@ -1,7 +1,7 @@
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import type { z } from "zod";
-import { CreateProductsParamsSchema } from "../../types/schemas";
+import { CreateProductsParamsSchema } from "../../types";
 import { useCreateProduct, useUpdateProduct, useProduct } from "../../hooks/use_products";
 import { FieldError } from "../../components/field_error";
 import { ErrorMessage } from "../../components/error_message";

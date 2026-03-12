@@ -1,0 +1,240 @@
+# frozen_string_literal: true
+
+RSpec.describe Zodra::Export::FileTreeBuilder do
+  let(:configuration) { Zodra::Configuration.new }
+
+  before do
+    Zodra::TypeRegistry.global.clear!
+    Zodra::ContractRegistry.global.clear!
+    Zodra::ApiRegistry.global.clear!
+  end
+
+  after do
+    Zodra::TypeRegistry.global.clear!
+    Zodra::ContractRegistry.global.clear!
+    Zodra::ApiRegistry.global.clear!
+  end
+
+  def setup_product_contract # rubocop:disable Metrics/MethodLength
+    Zodra.type :product do
+      uuid :id
+      string :name
+      decimal :price
+    end
+
+    contract = Zodra.contract :products do
+      action :index do
+        params {}
+        response :product
+      end
+
+      action :show do
+        params do
+          uuid :id
+        end
+        response :product
+      end
+
+      action :create do
+        params do
+          string :name, min: 1
+          decimal :price, min: 0
+        end
+        response :product
+      end
+    end
+
+    contract.find_action(:index).tap do |a|
+      a.http_method = :get
+      a.path = '/products'
+    end
+    contract.find_action(:show).tap do |a|
+      a.http_method = :get
+      a.path = '/products/:id'
+    end
+    contract.find_action(:create).tap do |a|
+      a.http_method = :post
+      a.path = '/products'
+    end
+
+    Zodra.api '/api/v1' do
+      resources :products
+    end
+  end
+
+  describe '#build' do
+    it 'generates type files with schema and interface' do
+      Zodra.type :user do
+        string :name
+        integer :age
+      end
+
+      files = described_class.new(configuration).build
+
+      expect(files).to have_key('types/user.ts')
+
+      content = files['types/user.ts']
+      expect(content).to include("import { z } from 'zod';")
+      expect(content).to include('export const UserSchema = z.object({')
+      expect(content).to include('export interface User {')
+    end
+
+    it 'generates type files with dependency imports' do
+      Zodra.type :category do
+        uuid :id
+        string :name
+      end
+
+      Zodra.type :product do
+        uuid :id
+        string :name
+        reference :category
+      end
+
+      files = described_class.new(configuration).build
+
+      content = files['types/product.ts']
+      expect(content).to include("import { CategorySchema } from './category';")
+      expect(content).to include("import type { Category } from './category';")
+    end
+
+    it 'generates types barrel' do
+      Zodra.type :user do
+        string :name
+      end
+
+      files = described_class.new(configuration).build
+
+      expect(files).to have_key('types/index.ts')
+      expect(files['types/index.ts']).to include("export * from './user';")
+    end
+
+    it 'generates contract files with type imports' do
+      setup_product_contract
+
+      files = described_class.new(configuration).build
+
+      expect(files).to have_key('contracts/products.ts')
+
+      content = files['contracts/products.ts']
+      expect(content).to include("import { z } from 'zod';")
+      expect(content).to include("import { ProductSchema } from '../types/product';")
+      expect(content).to include('IndexProductsParamsSchema')
+      expect(content).to include('ShowProductsParamsSchema')
+      expect(content).to include('CreateProductsParamsSchema')
+      expect(content).to include('export const ProductsContract = {')
+    end
+
+    it 'generates contracts barrel with contracts map and baseUrl' do
+      setup_product_contract
+
+      files = described_class.new(configuration).build
+
+      expect(files).to have_key('contracts/index.ts')
+
+      content = files['contracts/index.ts']
+      expect(content).to include("import { ProductsContract } from './products';")
+      expect(content).to include('export const contracts = {')
+      expect(content).to include('products: ProductsContract')
+      expect(content).to include("export const baseUrl = '/api/v1';")
+      expect(content).to include("export * from './products';")
+    end
+
+    it 'generates root barrel' do
+      Zodra.type :user do
+        string :name
+      end
+
+      files = described_class.new(configuration).build
+
+      expect(files).to have_key('index.ts')
+      expect(files['index.ts']).to include("export * from './types';")
+      expect(files['index.ts']).to include("export * from './contracts';")
+    end
+
+    it 'uses kebab-case for file names' do
+      Zodra.type :order_item do
+        uuid :id
+        integer :quantity
+      end
+
+      files = described_class.new(configuration).build
+
+      expect(files).to have_key('types/order-item.ts')
+      expect(files['types/index.ts']).to include("export * from './order-item';")
+    end
+
+    it 'includes auto-generated header in all files' do
+      Zodra.type :user do
+        string :name
+      end
+
+      files = described_class.new(configuration).build
+
+      files.each_value do |content|
+        expect(content).to start_with("// Auto-generated by Zodra — DO NOT EDIT\n")
+      end
+    end
+
+    it 'respects zod_import configuration' do
+      configuration.zod_import = 'zod/v4'
+
+      Zodra.type :user do
+        string :name
+      end
+
+      files = described_class.new(configuration).build
+
+      expect(files['types/user.ts']).to include("import { z } from 'zod/v4';")
+    end
+
+    it 'generates contract TS params interfaces' do
+      setup_product_contract
+
+      files = described_class.new(configuration).build
+
+      content = files['contracts/products.ts']
+      expect(content).to include('export interface CreateProductsParams {')
+    end
+
+    it 'omits baseUrl when no API definitions' do
+      Zodra.type :user do
+        uuid :id
+        string :name
+      end
+
+      contract = Zodra.contract :users do
+        action :index do
+          params {}
+          response :user
+        end
+      end
+
+      contract.find_action(:index).tap do |a|
+        a.http_method = :get
+        a.path = '/users'
+      end
+
+      files = described_class.new(configuration).build
+
+      expect(files['contracts/index.ts']).not_to include('baseUrl')
+    end
+
+    it 'handles enum types' do
+      Zodra.enum :status, values: %i[active inactive]
+
+      Zodra.type :user do
+        uuid :id
+        status :state
+      end
+
+      files = described_class.new(configuration).build
+
+      expect(files).to have_key('types/status.ts')
+      expect(files['types/status.ts']).to include('export const StatusSchema = z.enum([')
+      expect(files['types/status.ts']).to include('export type Status =')
+
+      expect(files['types/user.ts']).to include("import { StatusSchema } from './status';")
+    end
+  end
+end

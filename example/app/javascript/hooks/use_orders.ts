@@ -1,6 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { api } from "../api";
-import type { CreateOrdersParams, SearchOrdersParams } from "../types/types";
+import type { CreateOrdersParams, SearchOrdersParams } from "../types";
 
 const ORDERS_KEY = ["orders"] as const;
 

@@ -2,10 +2,10 @@ import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useSettings, useUpdateSettings } from "../../hooks/use_settings";
-import { UpdateSettingsParamsSchema } from "../../types/schemas";
+import { UpdateSettingsParamsSchema } from "../../types";
 import { ErrorMessage } from "../../components/error_message";
 import { FieldError } from "../../components/field_error";
-import type { UpdateSettingsParams } from "../../types/types";
+import type { UpdateSettingsParams } from "../../types";
 
 interface Settings {
   storeName: string;

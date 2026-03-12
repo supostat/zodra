@@ -1,5 +1,5 @@
 import { createApiClient } from "@zodra/client";
-import { contracts, baseUrl } from "./types/contracts";
+import { contracts, baseUrl } from "./types";
 
 export const api = createApiClient({
   baseUrl,

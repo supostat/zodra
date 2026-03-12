@@ -14,6 +14,10 @@ module Zodra
         parts.first + parts[1..].map(&:capitalize).join
       end
 
+      def file_name(name)
+        name.to_s.tr('_', '-')
+      end
+
       def strip_base_path(path, base_path)
         return path unless base_path
 

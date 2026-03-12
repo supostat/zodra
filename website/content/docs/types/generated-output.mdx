@@ -29,7 +29,7 @@ end
 
 Generates:
 
-```typescript title="zodra/schemas.ts"
+```typescript title="zodra/types/product.ts"
 import { z } from "zod";
 
 export const ProductSchema = z.object({
@@ -43,7 +43,16 @@ export const ProductSchema = z.object({
   updatedAt: z.iso.datetime(),
 });
 
-export type Product = z.infer<typeof ProductSchema>;
+export interface Product {
+  id: string;
+  name: string;
+  price: number;
+  currency: "USD" | "EUR" | "GBP";
+  inStock: boolean;
+  tags: string[];
+  createdAt: string;
+  updatedAt: string;
+}
 ```
 
 ## Key format
@@ -102,9 +111,16 @@ export const PaymentMethodSchema = z.discriminatedUnion("type", [
 
 Contracts generate action definitions that the `@zodra/client` uses for typed API calls:
 
-Contract descriptors are generated into `schemas.ts`, and then re-exported via `contracts.ts`:
+Each contract gets its own file with params schemas and the contract descriptor:
 
-```typescript title="zodra/schemas.ts (contract section)"
+```typescript title="zodra/contracts/products.ts"
+import { z } from 'zod';
+import { ProductSchema } from '../types/product';
+
+export const IndexProductsParamsSchema = z.object({});
+export const ShowProductsParamsSchema = z.object({ id: z.uuid() });
+export const CreateProductsParamsSchema = z.object({ ... });
+
 export const ProductsContract = {
   index: { method: 'GET' as const, path: '/products' as const, params: IndexProductsParamsSchema, response: ProductSchema, collection: true as const },
   show: { method: 'GET' as const, path: '/products/:id' as const, params: ShowProductsParamsSchema, response: ProductSchema },
@@ -112,8 +128,10 @@ export const ProductsContract = {
 } as const;
 ```
 
-```typescript title="zodra/contracts.ts"
-import { ProductsContract } from './schemas';
+The contracts barrel re-exports all contracts:
+
+```typescript title="zodra/contracts/index.ts"
+import { ProductsContract } from './products';
 
 export const contracts = {
   products: ProductsContract,
@@ -128,7 +146,14 @@ Generated files are written to the configured `output_path` (default: `app/javas
 
 ```
 app/javascript/types/
-├── schemas.ts       # All Zod schemas (types, enums, unions, contract params/descriptors)
-├── types.ts         # All TypeScript interfaces
-└── contracts.ts     # Contract map and baseUrl
+├── types/
+│   ├── index.ts           # Re-exports all types
+│   ├── product.ts         # Zod schema + TypeScript interface
+│   ├── order.ts           # Imports from other type files
+│   └── ...
+├── contracts/
+│   ├── index.ts           # Contracts map + baseUrl
+│   ├── products.ts        # Params schemas + contract descriptor
+│   └── ...
+└── index.ts               # Re-exports types/ and contracts/
 ```

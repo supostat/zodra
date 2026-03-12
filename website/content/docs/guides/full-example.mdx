@@ -291,7 +291,7 @@ rails zodra:export
 
 ```typescript title="src/api.ts"
 import { createApiClient } from "@zodra/client";
-import { contracts } from "./zodra/contracts";
+import { contracts } from "./zodra";
 
 export const api = createApiClient({
   baseUrl: "/api/v1",

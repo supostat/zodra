@@ -1,6 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { api } from "../api";
-import type { CreateProductsParams, UpdateProductsParams } from "../types/types";
+import type { CreateProductsParams, UpdateProductsParams } from "../types";
 
 const PRODUCTS_KEY = ["products"] as const;
 
