@@ -33,12 +33,17 @@ export const DestroyProductsParamsSchema = z.object({
   id: z.uuid(),
 });
 
+export const LegacySearchProductsParamsSchema = z.object({
+  query: z.string().optional(),
+});
+
 export const ProductsContract = {
   index: { method: 'GET' as const, path: '/products' as const, params: IndexProductsParamsSchema, response: ProductSchema, collection: true as const },
   show: { method: 'GET' as const, path: '/products/:id' as const, params: ShowProductsParamsSchema, response: ProductSchema },
   create: { method: 'POST' as const, path: '/products' as const, params: CreateProductsParamsSchema, response: ProductSchema },
   update: { method: 'PATCH' as const, path: '/products/:id' as const, params: UpdateProductsParamsSchema, response: ProductSchema },
   destroy: { method: 'DELETE' as const, path: '/products/:id' as const, params: DestroyProductsParamsSchema },
+  legacy_search: { method: 'GET' as const, path: '/products/legacy_search' as const, params: LegacySearchProductsParamsSchema, response: ProductSchema, collection: true as const },
 } as const;
 
 export interface IndexProductsParams {
@@ -70,10 +75,15 @@ export interface DestroyProductsParams {
   id: string;
 }
 
+export interface LegacySearchProductsParams {
+  query?: string;
+}
+
 export interface ProductsContract {
   index: { method: 'GET'; path: '/products'; params: IndexProductsParams; response: Product; collection: true };
   show: { method: 'GET'; path: '/products/:id'; params: ShowProductsParams; response: Product };
   create: { method: 'POST'; path: '/products'; params: CreateProductsParams; response: Product };
   update: { method: 'PATCH'; path: '/products/:id'; params: UpdateProductsParams; response: Product };
   destroy: { method: 'DELETE'; path: '/products/:id'; params: DestroyProductsParams };
+  legacy_search: { method: 'GET'; path: '/products/legacy_search'; params: LegacySearchProductsParams; response: Product; collection: true };
 }

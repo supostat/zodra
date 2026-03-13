@@ -13,9 +13,23 @@ export const UpdateSettingsParamsSchema = z.object({
   maintenanceMode: z.boolean().optional(),
 });
 
+export const ShowSettingsResponseSchema = z.object({
+  storeName: z.string(),
+  currency: z.string(),
+  timezone: z.string(),
+  maintenanceMode: z.boolean(),
+});
+
+export const UpdateSettingsResponseSchema = z.object({
+  storeName: z.string(),
+  currency: z.string(),
+  timezone: z.string(),
+  maintenanceMode: z.boolean(),
+});
+
 export const SettingsContract = {
-  show: { method: 'GET' as const, path: '/settings' as const, params: ShowSettingsParamsSchema },
-  update: { method: 'PATCH' as const, path: '/settings' as const, params: UpdateSettingsParamsSchema },
+  show: { method: 'GET' as const, path: '/settings' as const, params: ShowSettingsParamsSchema, response: ShowSettingsResponseSchema },
+  update: { method: 'PATCH' as const, path: '/settings' as const, params: UpdateSettingsParamsSchema, response: UpdateSettingsResponseSchema },
 } as const;
 
 export interface ShowSettingsParams {
@@ -29,7 +43,21 @@ export interface UpdateSettingsParams {
   maintenanceMode?: boolean;
 }
 
+export interface ShowSettingsResponse {
+  storeName: string;
+  currency: string;
+  timezone: string;
+  maintenanceMode: boolean;
+}
+
+export interface UpdateSettingsResponse {
+  storeName: string;
+  currency: string;
+  timezone: string;
+  maintenanceMode: boolean;
+}
+
 export interface SettingsContract {
-  show: { method: 'GET'; path: '/settings'; params: ShowSettingsParams };
-  update: { method: 'PATCH'; path: '/settings'; params: UpdateSettingsParams };
+  show: { method: 'GET'; path: '/settings'; params: ShowSettingsParams; response: ShowSettingsResponse };
+  update: { method: 'PATCH'; path: '/settings'; params: UpdateSettingsParams; response: UpdateSettingsResponse };
 }

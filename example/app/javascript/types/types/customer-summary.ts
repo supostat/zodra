@@ -4,11 +4,12 @@ import { z } from 'zod';
 export const CustomerSummarySchema = z.object({
   id: z.uuid(),
   name: z.string(),
-  email: z.string(),
+  email: z.string().describe('Primary contact email'),
 });
 
 export interface CustomerSummary {
   id: string;
   name: string;
+  /** Primary contact email */
   email: string;
 }

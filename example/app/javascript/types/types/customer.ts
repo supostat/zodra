@@ -4,17 +4,19 @@ import { z } from 'zod';
 export const CustomerSchema = z.object({
   id: z.uuid(),
   name: z.string(),
-  email: z.string(),
+  email: z.string().describe('Primary contact email'),
   phone: z.string().optional(),
   notes: z.string().nullable(),
   registeredAt: z.iso.datetime(),
   createdAt: z.iso.datetime(),
   updatedAt: z.iso.datetime(),
-});
+}).describe('A registered customer');
 
+/** A registered customer */
 export interface Customer {
   id: string;
   name: string;
+  /** Primary contact email */
   email: string;
   phone?: string;
   notes: null | string;

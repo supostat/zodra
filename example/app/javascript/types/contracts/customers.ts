@@ -16,14 +16,14 @@ export const ShowCustomersParamsSchema = z.object({
 
 export const CreateCustomersParamsSchema = z.object({
   name: z.string(),
-  email: z.string(),
+  email: z.string().describe('Primary contact email'),
   phone: z.string().optional(),
   notes: z.string().nullable(),
 });
 
 export const UpdateCustomersParamsSchema = z.object({
   name: z.string().optional(),
-  email: z.string().optional(),
+  email: z.string().optional().describe('Primary contact email'),
   phone: z.string().optional(),
   notes: z.string().nullable().optional(),
 });
@@ -50,6 +50,7 @@ export interface ShowCustomersParams {
 
 export interface CreateCustomersParams {
   name: string;
+  /** Primary contact email */
   email: string;
   phone?: string;
   notes: null | string;
@@ -57,6 +58,7 @@ export interface CreateCustomersParams {
 
 export interface UpdateCustomersParams {
   name?: string;
+  /** Primary contact email */
   email?: string;
   phone?: string;
   notes?: null | string;

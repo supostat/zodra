@@ -12,27 +12,30 @@ import type { PaymentMethod } from './payment-method';
 
 export const OrderSchema = z.object({
   id: z.uuid(),
-  number: z.string(),
+  number: z.string().describe('Human-readable order number'),
   status: OrderStatusSchema,
   customer: CustomerSchema,
   lineItems: z.array(LineItemSchema),
-  paymentMethod: PaymentMethodSchema,
+  paymentMethod: PaymentMethodSchema.nullable(),
   totalAmount: z.number(),
   shippingAddress: z.string().optional(),
-  estimatedDelivery: z.iso.date().nullable(),
+  estimatedDelivery: z.iso.date().nullable().describe('Estimated delivery date, null if unknown'),
   createdAt: z.iso.datetime(),
   updatedAt: z.iso.datetime(),
-});
+}).describe('A customer order with line items and payment');
 
+/** A customer order with line items and payment */
 export interface Order {
   id: string;
+  /** Human-readable order number */
   number: string;
   status: OrderStatus;
   customer: Customer;
   lineItems: LineItem[];
-  paymentMethod: PaymentMethod;
+  paymentMethod: PaymentMethod | null;
   totalAmount: number;
   shippingAddress?: string;
+  /** Estimated delivery date, null if unknown */
   estimatedDelivery: null | string;
   createdAt: string;
   updatedAt: string;

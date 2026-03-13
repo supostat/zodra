@@ -4,12 +4,16 @@ import { ProductsContract } from './products';
 import { CustomersContract } from './customers';
 import { OrdersContract } from './orders';
 import { SettingsContract } from './settings';
+import { InternalMetricsContract } from './internal-metrics';
+import { DashboardContract } from './dashboard';
 
 export const contracts = {
   products: ProductsContract,
   customers: CustomersContract,
   orders: OrdersContract,
   settings: SettingsContract,
+  internalMetrics: InternalMetricsContract,
+  dashboard: DashboardContract,
 } as const;
 
 export const baseUrl = '/api/v1';
@@ -17,3 +21,5 @@ export * from './products';
 export * from './customers';
 export * from './orders';
 export * from './settings';
+export * from './internal-metrics';
+export * from './dashboard';

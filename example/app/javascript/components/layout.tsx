@@ -1,6 +1,7 @@
 import { NavLink, Outlet } from "react-router";
 
 const NAV_ITEMS = [
+  { to: "/dashboard", label: "Dashboard" },
   { to: "/products", label: "Products" },
   { to: "/orders", label: "Orders" },
   { to: "/settings", label: "Settings" },
@@ -25,6 +26,15 @@ export function Layout() {
             </li>
           ))}
         </ul>
+        <div className="mt-6 border-t pt-4">
+          <p className="px-3 mb-1 text-xs font-medium text-gray-400 uppercase tracking-wider">Server-rendered</p>
+          <a
+            href="/admin/dashboard"
+            className="block px-3 py-2 rounded text-gray-700 hover:bg-gray-100"
+          >
+            Admin Dashboard
+          </a>
+        </div>
       </nav>
       <main className="flex-1 p-6">
         <Outlet />

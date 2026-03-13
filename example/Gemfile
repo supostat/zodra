@@ -4,6 +4,7 @@ gem "rails", "~> 8.0"
 gem "sqlite3", ">= 2.1"
 gem "puma", ">= 5.0"
 
+gem "oj_serializers"
 gem "zodra", path: "../gem"
 gem "vite_rails"
 

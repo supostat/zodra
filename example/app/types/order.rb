@@ -8,7 +8,7 @@ Zodra.type :order do
   order_status :status
   reference :customer
   array :line_items, of: :line_item
-  reference :payment_method
+  reference :payment_method, nullable: true
   money :total_amount
   string? :shipping_address
   date :estimated_delivery, nullable: true, description: "Estimated delivery date, null if unknown"

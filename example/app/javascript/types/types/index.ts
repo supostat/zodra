@@ -2,10 +2,13 @@
 
 export * from './customer';
 export * from './customer-summary';
+export * from './dashboard-overview';
 export * from './order-item-input';
 export * from './order-status';
 export * from './payment-method';
 export * from './product';
+export * from './revenue-breakdown';
+export * from './top-product';
 export * from './order-input';
 export * from './line-item';
 export * from './order';

@@ -4,10 +4,9 @@ Zodra.contract :dashboard do
   action :show do
     description "Admin dashboard with key business metrics"
     response do
-      integer :total_orders
-      money :total_revenue
-      integer :active_customers
-      integer :low_stock_products, description: "Products with stock below 10"
+      reference :overview, to: :dashboard_overview
+      array :revenue_by_status, of: :revenue_breakdown
+      array :top_products, of: :top_product
     end
   end
 end

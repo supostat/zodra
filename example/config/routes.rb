@@ -5,6 +5,10 @@ Rails.application.routes.draw do
 
   zodra_routes
 
+  namespace :admin do
+    resource :dashboard, only: [:show]
+  end
+
   root "pages#index"
   get "*path", to: "pages#index", constraints: ->(req) { !req.path.start_with?("/api", "/admin", "/docs") }
 

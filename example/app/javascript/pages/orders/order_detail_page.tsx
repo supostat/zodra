@@ -95,10 +95,12 @@ export function OrderDetailPage() {
         </table>
       </div>
 
-      <div>
-        <h3 className="font-semibold mb-2">Payment Method</h3>
-        <PaymentMethodDisplay method={order.paymentMethod} />
-      </div>
+      {order.paymentMethod && (
+        <div>
+          <h3 className="font-semibold mb-2">Payment Method</h3>
+          <PaymentMethodDisplay method={order.paymentMethod} />
+        </div>
+      )}
     </div>
   );
 }

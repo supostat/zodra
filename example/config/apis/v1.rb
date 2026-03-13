@@ -21,4 +21,5 @@ Zodra.api "/api/v1" do
 
   resource :settings, only: %i[show update]
   resource :internal_metrics, only: [:show]
+  resource :dashboard, only: [:show]
 end

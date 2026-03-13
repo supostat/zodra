@@ -3,18 +3,26 @@
 import { z } from 'zod';
 export const ProductSchema = z.object({
   id: z.uuid(),
-  name: z.string(),
-  sku: z.string(),
-  price: z.number(),
-  stock: z.number().int(),
+  name: z.string().describe('Display name'),
+  sku: z.string().describe('Stock keeping unit, unique per product'),
+  price: z.number().describe('Price in store currency'),
+  stock: z.number().int().min(0).describe('Available inventory count'),
   published: z.boolean(),
-});
+  legacyCode: z.string().describe('Use sku instead - @deprecated'),
+}).describe('A product in the catalog');
 
+/** A product in the catalog */
 export interface Product {
   id: string;
+  /** Display name */
   name: string;
+  /** Stock keeping unit, unique per product */
   sku: string;
+  /** Price in store currency */
   price: number;
+  /** Available inventory count */
   stock: number;
   published: boolean;
+  /** Use sku instead - @deprecated */
+  legacyCode: string;
 }
