@@ -22,9 +22,9 @@ module Zodra
       end
     end
 
-    def reference(name, to: nil)
+    def reference(name, to: nil, **)
       target = to || name
-      @definition.add_attribute(name, type: :reference, reference_name: target)
+      @definition.add_attribute(name, type: :reference, reference_name: target, **)
     end
 
     def array(name, of: nil, **)

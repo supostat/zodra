@@ -125,12 +125,17 @@ module Zodra
         deps = Set.new
         contract.actions.each_value do |action|
           deps << action.response_type if action.response_type && @definitions_by_name.key?(action.response_type)
-          action.params.attributes.each_value do |attr|
-            dep = attr.dependency_name
-            deps << dep if dep && @definitions_by_name.key?(dep)
-          end
+          collect_definition_dependencies(action.params, deps)
+          collect_definition_dependencies(action.response_definition, deps) if action.inline_response?
         end
         deps
+      end
+
+      def collect_definition_dependencies(definition, deps)
+        definition.attributes.each_value do |attr|
+          dep = attr.dependency_name
+          deps << dep if dep && @definitions_by_name.key?(dep)
+        end
       end
 
       def build_contracts_barrel(contracts, base_path)

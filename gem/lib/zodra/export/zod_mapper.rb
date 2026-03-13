@@ -35,9 +35,10 @@ module Zodra
 
       def map_contract(contract, base_path: nil)
         params_output = map_contract_params(contract)
+        responses_output = map_contract_responses(contract)
         error_types_output = map_contract_error_types(contract)
         descriptor_output = map_contract_descriptor(contract, base_path:)
-        [params_output, error_types_output, descriptor_output].compact.reject(&:empty?).join("\n\n")
+        [params_output, responses_output, error_types_output, descriptor_output].compact.reject(&:empty?).join("\n\n")
       end
 
       def map_contracts(contracts, base_path: nil)
@@ -153,6 +154,19 @@ module Zodra
         end.join("\n\n")
       end
 
+      def map_contract_responses(contract)
+        parts = contract.actions.values.filter_map do |action|
+          next unless action.inline_response?
+
+          response_name = :"#{action.name}_#{contract.name}_response"
+          renamed = Definition.new(name: response_name, kind: :object)
+          action.response_definition.attributes.each { |key, attr| renamed.attributes[key] = attr }
+          map_object(renamed)
+        end
+
+        parts.join("\n\n")
+      end
+
       def map_contract_error_types(contract)
         parts = contract.actions.values.filter_map do |action|
           next if action.errors.empty?
@@ -176,7 +190,11 @@ module Zodra
           params_schema = "#{pascal_case(action.name)}#{name}ParamsSchema"
           parts = ["method: '#{action.http_method.to_s.upcase}' as const", "path: '#{path}' as const",
                    "params: #{params_schema}"]
-          parts << "response: #{pascal_case(action.response_type)}Schema" if action.response_type
+          if action.response_type
+            parts << "response: #{pascal_case(action.response_type)}Schema"
+          elsif action.inline_response?
+            parts << "response: #{pascal_case(action.name)}#{name}ResponseSchema"
+          end
           parts << 'collection: true as const' if action.collection?
           if action.errors.any?
             error_entries = action.errors.values.map do |e|

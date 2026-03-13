@@ -92,6 +92,15 @@ RSpec.describe Zodra::Export::TypeScriptMapper do
       expect(result).to include('  customer: Customer;')
     end
 
+    it 'maps nullable reference' do
+      definition = build_object(:invoice,
+                                payment: { type: :reference, reference_name: :payment_method, nullable: true })
+
+      result = mapper.map_definition(definition)
+
+      expect(result).to include('  payment: PaymentMethod | null;')
+    end
+
     it 'maps array of references' do
       definition = build_object(:invoice,
                                 items: { type: :array, of: :item })
@@ -282,6 +291,39 @@ RSpec.describe Zodra::Export::TypeScriptMapper do
       result = mapper.map_contract(contract)
 
       expect(result).not_to include('collection')
+    end
+
+    it 'generates inline response interface for actions with response block' do
+      contract = build_contract(:dashboard) do |c|
+        action = c.add_action(:show)
+        action.http_method = :get
+        action.path = '/dashboard'
+        Zodra::TypeBuilder.new(action.response_definition).instance_eval do
+          reference :overview, to: :dashboard_overview
+          array :top_products, of: :top_product
+        end
+      end
+
+      result = mapper.map_contract(contract)
+
+      expect(result).to include('export interface ShowDashboardResponse {')
+      expect(result).to include('  overview: DashboardOverview;')
+      expect(result).to include('  topProducts: TopProduct[];')
+    end
+
+    it 'references inline response type in contract descriptor' do
+      contract = build_contract(:dashboard) do |c|
+        action = c.add_action(:show)
+        action.http_method = :get
+        action.path = '/dashboard'
+        Zodra::TypeBuilder.new(action.response_definition).instance_eval do
+          string :title
+        end
+      end
+
+      result = mapper.map_contract(contract)
+
+      expect(result).to include('response: ShowDashboardResponse')
     end
 
     it 'generates empty interface for contract without actions' do

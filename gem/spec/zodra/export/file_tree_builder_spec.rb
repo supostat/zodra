@@ -220,6 +220,38 @@ RSpec.describe Zodra::Export::FileTreeBuilder do
       expect(files['contracts/index.ts']).not_to include('baseUrl')
     end
 
+    it 'collects inline response type dependencies' do
+      Zodra.type :dashboard_overview do
+        integer :total_orders
+        decimal :total_revenue
+      end
+
+      contract = Zodra.contract :dashboard do
+        action :show do
+          params {}
+          response do
+            reference :overview, to: :dashboard_overview
+          end
+        end
+      end
+
+      contract.find_action(:show).tap do |a|
+        a.http_method = :get
+        a.path = '/dashboard'
+      end
+
+      Zodra.api '/api/v1' do
+        resource :dashboard, only: [:show]
+      end
+
+      files = described_class.new(configuration).build
+
+      content = files['contracts/dashboard.ts']
+      expect(content).to include("import { DashboardOverviewSchema } from '../types/dashboard-overview';")
+      expect(content).to include('ShowDashboardResponseSchema')
+      expect(content).to include('response: ShowDashboardResponseSchema')
+    end
+
     it 'handles enum types' do
       Zodra.enum :status, values: %i[active inactive]
 

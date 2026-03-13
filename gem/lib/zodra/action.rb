@@ -38,6 +38,10 @@ module Zodra
       @collection = true
     end
 
+    def inline_response?
+      response_type.nil? && response_definition.attributes.any?
+    end
+
     def response_schema
       if response_type
         contract&.resolve_type(response_type) || TypeRegistry.global.find!(response_type)

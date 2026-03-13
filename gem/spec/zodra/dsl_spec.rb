@@ -69,6 +69,17 @@ RSpec.describe 'Zodra DSL' do
       expect(attr.reference_name).to eq(:customer)
     end
 
+    it 'supports nullable reference' do
+      Zodra.type :invoice do
+        reference :payment_method, nullable: true
+      end
+
+      attr = Zodra::TypeRegistry.global.find!(:invoice).attributes[:payment_method]
+      expect(attr.reference?).to be true
+      expect(attr.nullable?).to be true
+      expect(attr.reference_name).to eq(:payment_method)
+    end
+
     it 'supports array of references' do
       Zodra.type :invoice do
         array :items, of: :item

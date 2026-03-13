@@ -35,8 +35,9 @@ module Zodra
 
       def map_contract(contract, base_path: nil)
         params_output = map_contract_params(contract)
+        responses_output = map_contract_responses(contract)
         descriptor_output = map_contract_descriptor(contract, base_path:)
-        [params_output, descriptor_output].compact.reject(&:empty?).join("\n\n")
+        [params_output, responses_output, descriptor_output].compact.reject(&:empty?).join("\n\n")
       end
 
       def map_contracts(contracts, base_path: nil)
@@ -115,6 +116,19 @@ module Zodra
         end.join("\n\n")
       end
 
+      def map_contract_responses(contract)
+        parts = contract.actions.values.filter_map do |action|
+          next unless action.inline_response?
+
+          response_name = :"#{action.name}_#{contract.name}_response"
+          renamed = Definition.new(name: response_name, kind: :object)
+          action.response_definition.attributes.each { |key, attr| renamed.attributes[key] = attr }
+          map_object(renamed)
+        end
+
+        parts.join("\n\n")
+      end
+
       def map_contract_descriptor(contract, base_path: nil)
         name = pascal_case(contract.name)
         return "export interface #{name}Contract {}" if contract.actions.empty?
@@ -123,7 +137,11 @@ module Zodra
           path = strip_base_path(action.path, base_path)
           params_type = "#{pascal_case(action.name)}#{name}Params"
           parts = ["method: '#{action.http_method.to_s.upcase}'", "path: '#{path}'", "params: #{params_type}"]
-          parts << "response: #{pascal_case(action.response_type)}" if action.response_type
+          if action.response_type
+            parts << "response: #{pascal_case(action.response_type)}"
+          elsif action.inline_response?
+            parts << "response: #{pascal_case(action.name)}#{name}Response"
+          end
           parts << 'collection: true' if action.collection?
           "  #{action.name}: { #{parts.join('; ')} };"
         end

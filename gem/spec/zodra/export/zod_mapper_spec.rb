@@ -77,6 +77,14 @@ RSpec.describe Zodra::Export::ZodMapper do
       expect(result).to include('customer: CustomerSchema')
     end
 
+    it 'maps nullable reference with .nullable()' do
+      definition = build_object(:invoice, payment: { type: :reference, reference_name: :payment_method, nullable: true })
+
+      result = mapper.map_definition(definition)
+
+      expect(result).to include('payment: PaymentMethodSchema.nullable()')
+    end
+
     it 'maps array of references' do
       definition = build_object(:invoice, items: { type: :array, of: :item })
 
@@ -321,6 +329,39 @@ RSpec.describe Zodra::Export::ZodMapper do
       result = mapper.map_contract(contract)
 
       expect(result).to include("errors: [{ code: 'already_finalized' as const, status: 409 as const }] as const")
+    end
+
+    it 'generates inline response schema for actions with response block' do
+      contract = build_contract(:dashboard) do |c|
+        action = c.add_action(:show)
+        action.http_method = :get
+        action.path = '/dashboard'
+        Zodra::TypeBuilder.new(action.response_definition).instance_eval do
+          reference :overview, to: :dashboard_overview
+          array :top_products, of: :top_product
+        end
+      end
+
+      result = mapper.map_contract(contract)
+
+      expect(result).to include('export const ShowDashboardResponseSchema = z.object({')
+      expect(result).to include('overview: DashboardOverviewSchema')
+      expect(result).to include('topProducts: z.array(TopProductSchema)')
+    end
+
+    it 'references inline response schema in contract descriptor' do
+      contract = build_contract(:dashboard) do |c|
+        action = c.add_action(:show)
+        action.http_method = :get
+        action.path = '/dashboard'
+        Zodra::TypeBuilder.new(action.response_definition).instance_eval do
+          string :title
+        end
+      end
+
+      result = mapper.map_contract(contract)
+
+      expect(result).to include('response: ShowDashboardResponseSchema')
     end
 
     it 'skips error types for actions without errors' do
