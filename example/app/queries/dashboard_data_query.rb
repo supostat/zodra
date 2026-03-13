@@ -6,9 +6,9 @@ class DashboardDataQuery
 
   def call
     {
-      overview: Admin::OverviewSerializer.one(nil, stock_threshold: STOCK_THRESHOLD),
-      revenue_by_status: Admin::RevenueBreakdownSerializer.many(revenue_by_status),
-      top_products: Admin::TopProductSerializer.many(top_products)
+      overview: OverviewSerializer.one(nil, stock_threshold: STOCK_THRESHOLD),
+      revenue_by_status: RevenueBreakdownSerializer.many(revenue_by_status),
+      top_products: TopProductSerializer.many(top_products)
     }
   end
 

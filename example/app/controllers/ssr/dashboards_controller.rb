@@ -1,9 +1,10 @@
 # frozen_string_literal: true
 
-module Admin
+module Ssr
   class DashboardsController < BaseController
     def show
-      @props = DashboardDataQuery.new.call
+      data = DashboardDataQuery.new.call
+      @props = camelize_keys(data)
     end
   end
 end

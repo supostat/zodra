@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>SSR — Zodra Example</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <%= vite_client_tag %>
+  <%= vite_react_refresh_tag %>
+  <%= vite_stylesheet_tag "application.css" %>
+  <%= vite_javascript_tag "ssr.tsx" %>
+</head>
+<body>
+  <div class="flex min-h-screen">
+    <nav class="w-56 border-r bg-gray-50 p-4">
+      <h1 class="text-lg font-bold mb-6">Zodra</h1>
+      <ul class="space-y-1">
+        <% [
+          [ssr_dashboard_path, "Dashboard"],
+          [ssr_products_path, "Products"],
+          [ssr_orders_path, "Orders"],
+          [ssr_settings_path, "Settings"],
+        ].each do |path, label| %>
+          <li>
+            <a href="<%= path %>"
+               class="block px-3 py-2 rounded <%= request.path.start_with?(path) ? 'bg-blue-100 text-blue-700 font-medium' : 'text-gray-700 hover:bg-gray-100' %>">
+              <%= label %>
+            </a>
+          </li>
+        <% end %>
+      </ul>
+      <div class="mt-6 border-t pt-4">
+        <div class="flex rounded-md overflow-hidden border text-xs font-medium">
+          <a href="<%= spa_path_for(request.path) %>"
+             class="flex-1 text-center py-1.5 bg-white text-gray-600 hover:bg-gray-50">
+            SPA
+          </a>
+          <span class="flex-1 text-center py-1.5 bg-blue-600 text-white">
+            SSR
+          </span>
+        </div>
+      </div>
+    </nav>
+    <main class="flex-1 p-6">
+      <%= yield %>
+    </main>
+  </div>
+</body>
+</html>
